@@ -2,8 +2,6 @@
  * Envol has one fixed brand theme (Art Nouveau palette) — no light/dark split.
  */
 
-import { Platform } from 'react-native';
-
 export const Colors = {
   text: '#361A07', // Rich Brown
   background: '#D1D0C1', // Bone Cream
@@ -15,27 +13,13 @@ export const Colors = {
   tabIconSelected: '#387A3F',
 };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-});
+// Custom fonts loaded via useFonts in app/_layout.tsx — see @expo-google-fonts packages.
+// Tinos stands in for Times New Roman: TNR is a Monotype-licensed font that can't be
+// redistributed in an app bundle, and Tinos is Google's free, metric-compatible match for it.
+export const Fonts = {
+  heading: 'CinzelDecorative_700Bold',
+  headingRegular: 'CinzelDecorative_400Regular',
+  body: 'Cinzel_400Regular',
+  bodySemiBold: 'Cinzel_600SemiBold',
+  scientific: 'Tinos_400Regular_Italic',
+};

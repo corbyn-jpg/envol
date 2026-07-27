@@ -13,10 +13,13 @@ const firebaseConfig = {
   appId: "1:129174828009:web:84d74ba123c3fe7d519178"
 }
 
+//Creates the app and has it call the config
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
+//Creates the authorisation
 export const auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),
 });
 
+//creates the database using firestore
 export const db = getFirestore(app);

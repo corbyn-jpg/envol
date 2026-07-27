@@ -1,32 +1,18 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Envol has one fixed brand theme (Art Nouveau palette) — no light/dark split.
  */
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#387A3f';
-const tintColorDark = '#D1D0C1';
-
 export const Colors = {
-  light: {
-    text: '#361A07',
-    background: '#D1D0C1',
-    primary: '#387A3f',
-    accent: '#DABA51',
-    tint: tintColorLight,
-    icon: '#D1D0C1',
-    tabIconDefault: '#361A07',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+  text: '#361A07', // Rich Brown
+  background: '#D1D0C1', // Bone Cream
+  primary: '#387A3F', // Firn Green
+  accent: '#DABA51', // Old Gold
+  tint: '#387A3F',
+  icon: '#361A07',
+  tabIconDefault: '#361A07',
+  tabIconSelected: '#387A3F',
 };
 
 export const Fonts = Platform.select({

@@ -58,7 +58,7 @@ export default function SignupScreen() {
           <ThemedText type="title" style={styles.title}>
             Envol
           </ThemedText>
-          <OrnateDivider />
+          <OrnateDivider/>
           <ThemedText style={styles.subtitle}>Sign up to start searching</ThemedText>
 
           <View style={styles.card}>
@@ -107,7 +107,6 @@ export default function SignupScreen() {
             </TouchableOpacity>
           </View>
 
-          <OrnateDivider width={140} />
           <Link href="/login" style={styles.link}>
             <ThemedText style={styles.linkText}>Have an account? Log In</ThemedText>
           </Link>

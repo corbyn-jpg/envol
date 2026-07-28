@@ -52,7 +52,7 @@ export default function LoginScreen() {
             Envol
           </ThemedText>
           <OrnateDivider />
-          <ThemedText style={styles.subtitle}>Log in to start hunting</ThemedText>
+          <ThemedText style={styles.subtitle}>Log in to start searching</ThemedText>
 
           <View style={styles.card}>
             { /*Email input */}
@@ -89,7 +89,6 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          <OrnateDivider width={140} />
           <Link href="/signup" style={styles.link}>
             <ThemedText style={styles.linkText}>
               Need an account? Sign Up

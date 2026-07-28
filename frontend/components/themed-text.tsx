@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodySemiBold,
   },
   title: {
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 40,
+    lineHeight: 74,
     fontFamily: Fonts.heading,
     letterSpacing: 1,
   },

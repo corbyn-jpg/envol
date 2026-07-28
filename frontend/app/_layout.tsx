@@ -1,9 +1,6 @@
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Cinzel_400Regular, Cinzel_600SemiBold } from '@expo-google-fonts/cinzel';
-import {
-  CinzelDecorative_400Regular,
-  CinzelDecorative_700Bold,
-} from '@expo-google-fonts/cinzel-decorative';
+import { Amarante_400Regular } from '@expo-google-fonts/amarante';
+import { Arizonia_400Regular } from '@expo-google-fonts/arizonia';
 import { Tinos_400Regular_Italic } from '@expo-google-fonts/tinos';
 import { useFonts } from 'expo-font';
 import { Stack, SplashScreen } from 'expo-router';
@@ -36,10 +33,8 @@ const EnvolNavigationTheme = {
 function SplashScreenController() {
   const { loading: authLoading } = useAuth();
   const [fontsLoaded] = useFonts({
-    Cinzel_400Regular,
-    Cinzel_600SemiBold,
-    CinzelDecorative_400Regular,
-    CinzelDecorative_700Bold,
+    Amarante_400Regular,
+    Arizonia_400Regular,
     Tinos_400Regular_Italic,
   });
 

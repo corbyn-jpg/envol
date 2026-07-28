@@ -16,10 +16,12 @@ export const Colors = {
 // Custom fonts loaded via useFonts in app/_layout.tsx — see @expo-google-fonts packages.
 // Tinos stands in for Times New Roman: TNR is a Monotype-licensed font that can't be
 // redistributed in an app bundle, and Tinos is Google's free, metric-compatible match for it.
+// Amarante and Arizonia only ship one weight each (400 Regular) — there's no bold/semibold
+// variant, so both roles below point at the same weight.
 export const Fonts = {
-  heading: 'CinzelDecorative_700Bold',
-  headingRegular: 'CinzelDecorative_400Regular',
-  body: 'Cinzel_400Regular',
-  bodySemiBold: 'Cinzel_600SemiBold',
+  heading: 'Arizonia_400Regular',
+  headingRegular: 'Arizonia_400Regular',
+  body: 'Amarante_400Regular',
+  bodySemiBold: 'Amarante_400Regular',
   scientific: 'Tinos_400Regular_Italic',
 };

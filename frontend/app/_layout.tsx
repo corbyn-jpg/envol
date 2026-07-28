@@ -6,6 +6,8 @@ import { useFonts } from 'expo-font';
 import { Stack, SplashScreen } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import { useEffect } from 'react';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 import { Colors } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/contexts/auth-context';
@@ -64,6 +66,11 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  //Ensures that screen orientation is portrait but only on set pages
+  useEffect(() => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+  }, []);
+  
   return (
     //Wrapped in AuthProvider to use useAuth()
     <AuthProvider>

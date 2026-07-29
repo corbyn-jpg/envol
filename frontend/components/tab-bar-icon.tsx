@@ -10,7 +10,7 @@ type TabBarIconProps = {
   icon: ReactNode;
 };
 
-// Matches the wireframe: the active tab renders as a filled pill with an icon + label, inactive tabs are just the bare icon.
+// Active tab renders as a filled pill with an icon + label, inactive tabs are just the bare icon.
 export function TabBarIcon({ focused, label, icon }: TabBarIconProps) {
   if (!focused) {
     return <View style={styles.iconOnly}>{icon}</View>;

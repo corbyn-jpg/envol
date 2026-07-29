@@ -4,24 +4,27 @@ import { StyleSheet, View } from 'react-native';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 
-// A fully custom tab bar. @react-navigation/bottom-tabs' built-in tabBarIcon
-// slot allocates a hardcoded tiny box (as small as 24x24) and clips anything
-// bigger via overflow: hidden — fine for a plain glyph, not for our
-// icon+label pill. Rendering the bar ourselves means nothing gets clipped.
+// A fully custom tab bar
 export function TabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   return (
+
+    //Ensures that the navbar fits every phone
     <View style={[styles.bar, { bottom: insets.bottom + 12 }]}>
       {state.routes.map((route, index) => {
+
+      { /* Pulls out the specific tab config */}
         const { options } = descriptors[route.key];
         const focused = state.index === index;
 
         function onPress() {
+          // navigation.emit(...) broadcasts a real tabPress event through the navigation system first
           const event = navigation.emit({
             type: 'tabPress',
             target: route.key,
             canPreventDefault: true,
           });
 
+          //Navigate to the tab if nothing is cancelled and it isn't already the active tab
           if (!focused && !event.defaultPrevented) {
             navigation.navigate(route.name);
           }

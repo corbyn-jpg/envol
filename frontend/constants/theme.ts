@@ -6,7 +6,7 @@ export const Colors = {
   text: '#361A07', // Rich Brown
   background: '#e2dfd1', // Bone Cream
   primary: '#387A3F', // Firn Green
-  accent: '#DABA51', // Old Gold
+  accent: '#c9a11f', // Old Gold
   tint: '#387A3F',
   icon: '#361A07',
   tabIconDefault: '#361A07',

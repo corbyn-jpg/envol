@@ -1,7 +1,7 @@
 
 export const Colors = {
   text: '#361A07', // Rich Brown
-  background: '#e2dfd1', // Bone Cream
+  background: '#f0ebd4', // Bone Cream
   primary: '#387A3F', // Firn Green
   accent: '#c9a11f', // Old Gold
   tint: '#387A3F',

@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     lineHeight: 74,
+    overflow: 'visible',
     fontFamily: Fonts.heading,
     letterSpacing: 1,
   },

@@ -1,6 +1,3 @@
-/**
- * Envol has one fixed brand theme (Art Nouveau palette) — no light/dark split.
- */
 
 export const Colors = {
   text: '#361A07', // Rich Brown
@@ -14,10 +11,6 @@ export const Colors = {
 };
 
 // Custom fonts loaded via useFonts in app/_layout.tsx — see @expo-google-fonts packages.
-// Tinos stands in for Times New Roman: TNR is a Monotype-licensed font that can't be
-// redistributed in an app bundle, and Tinos is Google's free, metric-compatible match for it.
-// Amarante and Arizonia only ship one weight each (400 Regular) — there's no bold/semibold
-// variant, so both roles below point at the same weight.
 export const Fonts = {
   heading: 'Arizonia_400Regular',
   headingRegular: 'Arizonia_400Regular',

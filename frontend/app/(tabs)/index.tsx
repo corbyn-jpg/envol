@@ -1,28 +1,28 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, {Marker} from 'react-native-maps';
-import * as Location from 'expo-location';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { getDistanceMeters } from '@/lib/distance';
-import { ThemedText } from '@/components/themed-text';
-import { useLandscapeCapable } from '@/hooks/use-landscape-capable';
-import { Colors } from '@/constants/theme';
+import { useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import MapView, { Marker } from "react-native-maps";
+import * as Location from "expo-location";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { getDistanceMeters } from "@/lib/distance";
+import { ThemedText } from "@/components/themed-text";
+import { useLandscapeCapable } from "@/hooks/use-landscape-capable";
+import { Colors } from "@/constants/theme";
 
 type Arena = {
-id: string;
-name: string;
-region: string;
-description: string;
-radiusMeters: number;
-latitude: number;
-longitude: number;
+  id: string;
+  name: string;
+  province: string;
+  description: string;
+  radiusMeters: number;
+  latitude: number;
+  longitude: number;
 };
 
 export default function MapScreen() {
   //Allows this page to go into landscape
-  useLandscapeCapable(); 
+  useLandscapeCapable();
 
   const [region, setRegion] = useState<{
     latitude: number;
@@ -35,19 +35,19 @@ export default function MapScreen() {
 
   //useMemo ensures that the calculation doesn't rerun on every render
   const nearestArena = useMemo(() => {
-    if(!region || arenas?.length === 0) return null;
-    
+    if (!region || arenas?.length === 0) return null;
+
     return arenas
-    .map((arena) => ({
-      arena,
-      distanceMeters: getDistanceMeters(
-        region.latitude,
-        region.longitude,
-        arena.latitude,
-        arena.longitude
-      )
-    }))
-    .sort((a, b) => a.distanceMeters - b.distanceMeters)[0];
+      .map((arena) => ({
+        arena,
+        distanceMeters: getDistanceMeters(
+          region.latitude,
+          region.longitude,
+          arena.latitude,
+          arena.longitude,
+        ),
+      }))
+      .sort((a, b) => a.distanceMeters - b.distanceMeters)[0];
   }, [region, arenas]);
 
   useEffect(() => {
@@ -55,10 +55,10 @@ export default function MapScreen() {
     (async () => {
       //status waits until the user grants permissions for location while the app is in the foreground.
       const { status } = await Location.requestForegroundPermissionsAsync();
-      
+
       //If location is not granted, error is thrown
-      if(status !== 'granted') {
-        setErrorMsg('Location permission is required to find nearby arena');
+      if (status !== "granted") {
+        setErrorMsg("Location permission is required to find nearby arena");
         return;
       }
 
@@ -76,20 +76,29 @@ export default function MapScreen() {
   useEffect(() => {
     (async () => {
       //Returns a snapshot containing every document in the collection
-      const snapshot = await getDocs(collection(db, 'arenas'));
+      const snapshot = await getDocs(collection(db, "arenas"));
 
-      const fetched = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        return{
-          id: doc.id,
-          name: data.name,
-          region: data.region,
-          description: data.description,
-        radiusMeters: data.radiusMeters,
-        latitude: data.location.latitude,
-        longitude: data.location.longitude,
-        };
-      });
+      const fetched = snapshot.docs
+  .filter((doc) => {
+    const data = doc.data();
+    const isValid = data.location != null && data.name != null;
+    if (!isValid) {
+      console.warn(`Arena document "${doc.id}" is missing required fields — skipping.`);
+    }
+    return isValid;
+  })
+  .map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      name: data.name,
+      province: data.province,
+      description: data.description,
+      radiusMeters: data.radiusMeters,
+      latitude: data.location.latitude,
+      longitude: data.location.longitude,
+    };
+  });
 
       setArenas(fetched);
     })();
@@ -104,7 +113,7 @@ export default function MapScreen() {
     );
   }
 
-  if(!region) {
+  if (!region) {
     return (
       <SafeAreaView style={styles.center}>
         <ActivityIndicator color={Colors.primary} />
@@ -112,25 +121,25 @@ export default function MapScreen() {
     );
   }
 
-  return(
+  return (
     <MapView style={styles.map} initialRegion={region} showsUserLocation>
-    {arenas.map((arena) => (
-      <Marker
-        key={arena.id}
-        coordinate={{ latitude: arena.latitude, longitude: arena.longitude }}
-        title={arena.name}
-        description={arena.region}
-      />
-    ))}
-  </MapView>
-  )
+      {arenas.map((arena) => (
+        <Marker
+          key={arena.id}
+          coordinate={{ latitude: arena.latitude, longitude: arena.longitude }}
+          title={arena.name}
+          description={arena.province}
+        />
+      ))}
+    </MapView>
+  );
 }
 
 const styles = StyleSheet.create({
   center: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: Colors.background,
   },
   map: {

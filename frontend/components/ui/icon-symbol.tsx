@@ -21,6 +21,7 @@ const MAPPING = {
   'book.closed.fill': 'menu-book',
   'chart.bar.fill': 'leaderboard',
   'rosette': 'military-tech',
+  'gearshape.fill': 'settings',
 } as IconMapping;
 
 /**

@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { collection, getDocs } from "firebase/firestore";
@@ -8,7 +16,9 @@ import { db } from "@/lib/firebase";
 import { getDistanceMeters } from "@/lib/distance";
 import { ThemedText } from "@/components/themed-text";
 import { useLandscapeCapable } from "@/hooks/use-landscape-capable";
-import { Colors } from "@/constants/theme";
+import { Colors, Fonts } from "@/constants/theme";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { OrnateDivider } from "@/components/ornate-divider";
 
 type Arena = {
   id: string;
@@ -32,10 +42,11 @@ export default function MapScreen() {
   } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [arenas, setArenas] = useState<Arena[]>([]);
+  const insets = useSafeAreaInsets();
 
   //useMemo ensures that the calculation doesn't rerun on every render
-  const nearestArena = useMemo(() => {
-    if (!region || arenas?.length === 0) return null;
+  const arenasWithDistance = useMemo(() => {
+    if (!region) return [];
 
     return arenas
       .map((arena) => ({
@@ -47,8 +58,13 @@ export default function MapScreen() {
           arena.longitude,
         ),
       }))
-      .sort((a, b) => a.distanceMeters - b.distanceMeters)[0];
+      .sort((a, b) => a.distanceMeters - b.distanceMeters);
   }, [region, arenas]);
+
+  const nearest = arenasWithDistance[0] ?? null;
+  const isActive = nearest
+    ? nearest.distanceMeters <= nearest.arena.radiusMeters
+    : false;
 
   useEffect(() => {
     //useEffect can't be async so we call it inside the function
@@ -78,27 +94,18 @@ export default function MapScreen() {
       //Returns a snapshot containing every document in the collection
       const snapshot = await getDocs(collection(db, "arenas"));
 
-      const fetched = snapshot.docs
-  .filter((doc) => {
-    const data = doc.data();
-    const isValid = data.location != null && data.name != null;
-    if (!isValid) {
-      console.warn(`Arena document "${doc.id}" is missing required fields — skipping.`);
-    }
-    return isValid;
-  })
-  .map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      name: data.name,
-      province: data.province,
-      description: data.description,
-      radiusMeters: data.radiusMeters,
-      latitude: data.location.latitude,
-      longitude: data.location.longitude,
-    };
-  });
+      const fetched = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          province: data.province,
+          description: data.description,
+          radiusMeters: data.radiusMeters,
+          latitude: data.location.latitude,
+          longitude: data.location.longitude,
+        };
+      });
 
       setArenas(fetched);
     })();
@@ -122,20 +129,109 @@ export default function MapScreen() {
   }
 
   return (
-    <MapView style={styles.map} initialRegion={region} showsUserLocation>
-      {arenas.map((arena) => (
-        <Marker
-          key={arena.id}
-          coordinate={{ latitude: arena.latitude, longitude: arena.longitude }}
-          title={arena.name}
-          description={arena.province}
-        />
-      ))}
-    </MapView>
+      //Creates arena markers
+    <View style={styles.container}>
+      <MapView style={styles.map} initialRegion={region} showsUserLocation>
+        {arenas.map((arena) => (
+          <Marker
+            key={arena.id}
+            coordinate={{
+              latitude: arena.latitude,
+              longitude: arena.longitude,
+            }}
+            title={arena.name}
+            description={arena.province}
+          />
+        ))}
+      </MapView>
+
+      {/* Creates an arena around our markers */}
+      {nearest && (
+        <View style={[styles.card, { bottom: insets.bottom + 12 + 64 + 12 }]}>
+          <ThemedText style={styles.cardLabel}>
+            {isActive
+              ? "ARENA ACTIVE"
+              : `NEAREST ARENA · ${(nearest.distanceMeters / 1000).toFixed(1)} KM`}
+          </ThemedText>
+          <ThemedText type="subtitle">{nearest.arena.name}</ThemedText>
+          <ThemedText style={styles.cardDescription}>
+            {nearest.arena.description}
+          </ThemedText>
+          <TouchableOpacity
+            style={[
+              styles.enterButton,
+              !isActive && styles.enterButtonDisabled,
+            ]}
+            disabled={!isActive}
+            onPress={() => {
+              // TODO: navigate to the Arena Entry screen once it exists
+            }}
+          >
+            <ThemedText style={styles.enterButtonText}>
+              {isActive ? "Enter" : "Get closer to enter"}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Top bar */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <View>
+          <ThemedText type="title" style={styles.headerTitle}>
+            Envol
+          </ThemedText>
+        </View>
+        <OrnateDivider/>
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={() => {
+            // TODO: navigate to a settings screen once it exists
+          }}
+          >
+          <IconSymbol
+            name="gearshape.fill"
+            size={22}
+            color={Colors.background}
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  card: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    borderWidth: 1.5,
+    borderColor: Colors.accent,
+    borderRadius: 16,
+    backgroundColor: Colors.background,
+    padding: 16,
+    gap: 4,
+  },
+  cardLabel: {
+    fontSize: 12,
+    letterSpacing: 0.5,
+    color: Colors.primary,
+  },
+  cardDescription: {
+    marginBottom: 8,
+  },
+  enterButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  enterButtonText: {
+    color: Colors.background,
+    fontFamily: Fonts.bodySemiBold,
+  },
   center: {
     flex: 1,
     justifyContent: "center",
@@ -145,4 +241,37 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
+  enterButtonDisabled: {
+    backgroundColor: Colors.accent,
+  },
+  header: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingHorizontal: 16,
+  paddingBottom: 12,
+  backgroundColor: Colors.primary,
+  borderBottomWidth: 1.5,
+  borderBottomColor: Colors.accent,
+},
+headerEyebrow: {
+  fontSize: 11,
+  letterSpacing: 1,
+  color: Colors.primary,
+},
+headerTitle: {
+  fontSize: 36,
+  color: '#fff',
+},
+settingsButton: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
 });

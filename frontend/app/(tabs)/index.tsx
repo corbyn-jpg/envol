@@ -149,20 +149,19 @@ export default function MapScreen() {
 
       {/* Creates an arena around our markers */}
       {nearest && (
-        <View style={[styles.card, { bottom: insets.bottom + 12 + 64 + 12 }]}>
+        <View style={[styles.card, { bottom: insets.bottom + 12 + 64 + 12, backgroundColor: primary }]}>
           <ThemedText style={styles.cardLabel}>
             {isActive
               ? "ARENA ACTIVE"
               : `NEAREST ARENA · ${(nearest.distanceMeters / 1000).toFixed(1)} KM`}
           </ThemedText>
-          <ThemedText type="subtitle">{nearest.arena.name}</ThemedText>
+          <ThemedText type="subtitle" style={styles.cardSubtitle}>{nearest.arena.name}</ThemedText>
           <ThemedText style={styles.cardDescription}>
             {nearest.arena.description}
           </ThemedText>
           <TouchableOpacity
             style={[
               styles.enterButton,
-              {backgroundColor: primary},
               !isActive && styles.enterButtonDisabled,
             ]}
             disabled={!isActive}
@@ -178,7 +177,7 @@ export default function MapScreen() {
       )}
 
       {/* Top bar */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 12, backgroundColor: primary }]}>
         <View>
           <ThemedText type="title" style={styles.headerTitle}>
             Envol
@@ -219,10 +218,14 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontSize: 12,
     letterSpacing: 0.5,
-    color: Colors.primary,
+    color: Colors.accent,
+  },
+  cardSubtitle: {
+    color: '#fff'
   },
   cardDescription: {
     marginBottom: 8,
+    color: '#fff'
   },
   enterButton: {
     borderRadius: 8,

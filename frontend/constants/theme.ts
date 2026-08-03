@@ -5,7 +5,7 @@ export const SeasonPrimaries: Record<Season, string> = {
   summer: '#387A3F',
   winter: '#1A1D67',
   autumn: '#660202',
-  spring: '#dd2e80',
+  spring: '#e04b91',
 };
 
 

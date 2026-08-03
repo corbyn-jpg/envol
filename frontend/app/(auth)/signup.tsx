@@ -13,10 +13,12 @@ import { Link } from "expo-router";
 import { ThemedText } from "@/components/themed-text";
 import { OrnateDivider } from "@/components/ornate-divider";
 import { useAuth } from "@/contexts/auth-context";
+import { useTheme } from "@/contexts/theme-context";
 import { Colors, Fonts } from "@/constants/theme";
 
 export default function SignupScreen() {
   const { signUp } = useAuth();
+  const { primary } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -97,7 +99,7 @@ export default function SignupScreen() {
 
             {/*Handles Submit */}
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, { backgroundColor: primary }]}
               onPress={handleSignup}
               disabled={submitting}
             >
@@ -108,7 +110,7 @@ export default function SignupScreen() {
           </View>
 
           <Link href="/login" style={styles.link}>
-            <ThemedText style={styles.linkText}>Have an account? Log In</ThemedText>
+            <ThemedText style={[styles.linkText, { color: primary }]}>Have an account? Log In</ThemedText>
           </Link>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -155,7 +157,6 @@ const styles = StyleSheet.create({
   },
   error: { color: "#B00020", fontFamily: Fonts.body },
   button: {
-    backgroundColor: Colors.primary,
     borderRadius: 8,
     padding: 14,
     alignItems: "center",
@@ -163,5 +164,5 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: Colors.background, fontFamily: Fonts.bodySemiBold },
   link: { marginTop: 4, alignSelf: "center" },
-  linkText: { color: Colors.primary },
+  linkText: {},
 });

@@ -5,14 +5,13 @@ export const SeasonPrimaries: Record<Season, string> = {
   summer: '#387A3F',
   winter: '#1A1D67',
   autumn: '#660202',
-  spring: '#e04b91',
+  spring: '#b11f91',
 };
 
 
 export const Colors = {
   text: '#361A07', // Rich Brown
   background: '#f0ebd4', // Bone Cream
-  primary: '#387A3F', // Firn Green
   accent: '#c9a11f', // Old Gold
   tint: '#387A3F',
   icon: '#361A07',

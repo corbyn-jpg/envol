@@ -10,6 +10,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
+import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -45,6 +46,7 @@ export default function MapScreen() {
   const [arenas, setArenas] = useState<Arena[]>([]);
   const insets = useSafeAreaInsets();
   const { primary } = useTheme();
+  const router = useRouter();
 
   //useMemo ensures that the calculation doesn't rerun on every render
   const arenasWithDistance = useMemo(() => {
@@ -186,9 +188,7 @@ export default function MapScreen() {
         <OrnateDivider/>
         <TouchableOpacity
           style={styles.settingsButton}
-          onPress={() => {
-            // TODO: navigate to a settings screen once it exists
-          }}
+          onPress={() => router.push('/settings')}
           >
           <IconSymbol
             name="gearshape.fill"

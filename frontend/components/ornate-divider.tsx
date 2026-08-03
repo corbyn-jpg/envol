@@ -9,7 +9,7 @@ type OrnateDividerProps = {
 
 // Art Nouveau whiplash-curve motif: one hand-built half, mirrored around a
 // center axis. Native viewBox is 800x140 — width/height just scale it.
-export function OrnateDivider({ color = Colors.accent, width = 240}: OrnateDividerProps) {
+export function OrnateDivider({ color = Colors.accent, width = 200}: OrnateDividerProps) {
   const height = width * (140 / 800);
 
   return (

@@ -13,10 +13,12 @@ import { Link } from "expo-router";
 import { ThemedText } from "@/components/themed-text";
 import { OrnateDivider } from "@/components/ornate-divider";
 import { useAuth } from "@/contexts/auth-context";
+import { useTheme } from "@/contexts/theme-context";
 import { Colors, Fonts } from "@/constants/theme";
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
+  const { primary } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export default function LoginScreen() {
 
             { /*Handles Submit */}
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, { backgroundColor: primary }]}
               onPress={handleLogin}
               disabled={submitting}
             >
@@ -90,7 +92,7 @@ export default function LoginScreen() {
           </View>
 
           <Link href="/signup" style={styles.link}>
-            <ThemedText style={styles.linkText}>
+            <ThemedText style={[styles.linkText, { color: primary }]}>
               Need an account? Sign Up
             </ThemedText>
           </Link>
@@ -139,7 +141,6 @@ const styles = StyleSheet.create({
   },
   error: { color: "#B00020", fontFamily: Fonts.body },
   button: {
-    backgroundColor: Colors.primary,
     borderRadius: 8,
     padding: 14,
     alignItems: "center",
@@ -147,5 +148,5 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: Colors.background, fontFamily: Fonts.bodySemiBold },
   link: { marginTop: 4, alignSelf: "center" },
-  linkText: { color: Colors.primary },
+  linkText: {},
 });

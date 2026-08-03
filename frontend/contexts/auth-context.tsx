@@ -8,6 +8,8 @@ import {
     type User,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 //Values for the authentication
 type AuthContextValue = {
@@ -36,7 +38,12 @@ export function AuthProvider ({children}: {children: ReactNode}) {
 
     //Creates a new user account associated with the specified email address and password.
     async function signUp(email: string, password: string) {
-        await createUserWithEmailAndPassword(auth, email, password);
+       const credential = await createUserWithEmailAndPassword(auth, email, password);
+       //Builds a reference to the user's document
+       await setDoc(doc(db, 'users', credential.user.uid), {
+        displayName: '',
+        themePreference: 'auto',
+       });
     }
 
     //Asynchronously signs in using an email and password.

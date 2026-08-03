@@ -1,3 +1,4 @@
+
 export type Season = 'summer' | 'winter' | 'autumn' | 'spring';
 
 export const SeasonPrimaries: Record<Season, string> = {

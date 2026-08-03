@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Colors, Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -12,12 +13,14 @@ type TabBarIconProps = {
 
 // Active tab renders as a filled pill with an icon + label, inactive tabs are just the bare icon.
 export function TabBarIcon({ focused, label, icon }: TabBarIconProps) {
+  const { primary } = useTheme();
+
   if (!focused) {
     return <View style={styles.iconOnly}>{icon}</View>;
   }
 
   return (
-    <View style={styles.pill}>
+    <View style={[styles.pill, { backgroundColor: primary }]}>
       {icon}
       <ThemedText style={styles.pillLabel}>{label}</ThemedText>
     </View>
@@ -33,7 +36,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: Colors.primary,
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 12,

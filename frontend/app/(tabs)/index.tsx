@@ -19,6 +19,7 @@ import { useLandscapeCapable } from "@/hooks/use-landscape-capable";
 import { Colors, Fonts } from "@/constants/theme";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { OrnateDivider } from "@/components/ornate-divider";
+import { useTheme } from "@/contexts/theme-context";
 
 type Arena = {
   id: string;
@@ -43,6 +44,7 @@ export default function MapScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [arenas, setArenas] = useState<Arena[]>([]);
   const insets = useSafeAreaInsets();
+  const { primary } = useTheme();
 
   //useMemo ensures that the calculation doesn't rerun on every render
   const arenasWithDistance = useMemo(() => {
@@ -123,7 +125,7 @@ export default function MapScreen() {
   if (!region) {
     return (
       <SafeAreaView style={styles.center}>
-        <ActivityIndicator color={Colors.primary} />
+        <ActivityIndicator color={primary} />
       </SafeAreaView>
     );
   }
@@ -160,6 +162,7 @@ export default function MapScreen() {
           <TouchableOpacity
             style={[
               styles.enterButton,
+              {backgroundColor: primary},
               !isActive && styles.enterButtonDisabled,
             ]}
             disabled={!isActive}
@@ -210,7 +213,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.accent,
     borderRadius: 16,
-    backgroundColor: Colors.background,
     padding: 16,
     gap: 4,
   },
@@ -223,7 +225,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   enterButton: {
-    backgroundColor: Colors.primary,
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: "center",
@@ -254,14 +255,12 @@ const styles = StyleSheet.create({
   alignItems: 'center',
   paddingHorizontal: 16,
   paddingBottom: 12,
-  backgroundColor: Colors.primary,
   borderBottomWidth: 1.5,
   borderBottomColor: Colors.accent,
 },
 headerEyebrow: {
   fontSize: 11,
   letterSpacing: 1,
-  color: Colors.primary,
 },
 headerTitle: {
   fontSize: 36,

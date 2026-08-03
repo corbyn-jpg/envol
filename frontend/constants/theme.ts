@@ -1,3 +1,12 @@
+export type Season = 'summer' | 'winter' | 'autumn' | 'spring';
+
+export const SeasonPrimaries: Record<Season, string> = {
+  summer: '#387A3F',
+  winter: '#1A1D67',
+  autumn: '#660202',
+  spring: '#dd2e80',
+};
+
 
 export const Colors = {
   text: '#361A07', // Rich Brown

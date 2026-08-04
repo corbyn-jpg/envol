@@ -164,12 +164,10 @@ export default function MapScreen() {
           <TouchableOpacity
             style={[
               styles.enterButton,
-              !isActive && styles.enterButtonDisabled,
+              isActive ? { backgroundColor: Colors.text } : styles.enterButtonDisabled,
             ]}
             disabled={!isActive}
-            onPress={() => {
-              // TODO: navigate to the Arena Entry screen once it exists
-            }}
+            onPress={() => router.push({ pathname: '/arena/entry-screen', params: { id: nearest.arena.id } })}
           >
             <ThemedText style={styles.enterButtonText}>
               {isActive ? "Enter" : "Get closer to enter"}

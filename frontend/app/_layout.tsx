@@ -60,6 +60,7 @@ function RootNavigator() {
         <Stack.Protected guard={!!user}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="settings" options={{ presentation: 'modal', title: 'Settings' }} />
+          <Stack.Screen name="arena/entry-screen" options={{ headerShown: false }} />
         </Stack.Protected>
 
         <Stack.Protected guard={!user}>

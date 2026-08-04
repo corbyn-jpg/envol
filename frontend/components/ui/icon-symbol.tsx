@@ -22,6 +22,7 @@ const MAPPING = {
   'chart.bar.fill': 'leaderboard',
   'rosette': 'military-tech',
   'gearshape.fill': 'settings',
+  'stopwatch.fill': 'timer',
 } as IconMapping;
 
 /**

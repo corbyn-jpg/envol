@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -97,10 +99,14 @@ export default function Settings() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* Display name */}
         <View style={styles.section}>
           <ThemedText type="subtitle">Display Name</ThemedText>
@@ -197,13 +203,15 @@ export default function Settings() {
         <TouchableOpacity style={styles.logOutButton} onPress={logOut}>
           <ThemedText style={styles.logOutButtonText}>Log Out</ThemedText>
         </TouchableOpacity>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.background, marginLeft: 24, marginRight: 24 },
+  flex: { flex: 1 },
   container: { gap: 24 },
   section: { gap: 8, marginBottom: 12 },
   hint: { fontSize: 12, opacity: 0.7 },

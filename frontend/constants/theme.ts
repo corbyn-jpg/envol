@@ -13,10 +13,8 @@ export const Colors = {
   text: '#361A07', // Rich Brown
   background: '#f0ebd4', // Bone Cream
   accent: '#c9a11f', // Old Gold
-  tint: '#387A3F',
   icon: '#361A07',
   tabIconDefault: '#361A07',
-  tabIconSelected: '#387A3F',
 };
 
 // Custom fonts loaded via useFonts in app/_layout.tsx — see @expo-google-fonts packages.

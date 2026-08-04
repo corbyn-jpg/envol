@@ -164,7 +164,7 @@ export default function MapScreen() {
           <TouchableOpacity
             style={[
               styles.enterButton,
-              isActive ? { backgroundColor: Colors.text } : styles.enterButtonDisabled,
+              isActive ? { backgroundColor: Colors.background } : styles.enterButtonDisabled,
             ]}
             disabled={!isActive}
             onPress={() => router.push({ pathname: '/arena/entry-screen', params: { id: nearest.arena.id } })}
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   enterButtonText: {
-    color: Colors.background,
+    color: Colors.text,
     fontFamily: Fonts.bodySemiBold,
   },
   center: {
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   enterButtonDisabled: {
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.background,
   },
   header: {
   position: 'absolute',

@@ -61,6 +61,7 @@ function RootNavigator() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="settings" options={{ presentation: 'modal', title: 'Settings' }} />
           <Stack.Screen name="arena/entry-screen" options={{ headerShown: false }} />
+          <Stack.Screen name="arena/active-screen" options={{ headerShown: false }} /><Stack.Screen name="species/detail-screen" options={{ headerShown: false }} />
         </Stack.Protected>
 
         <Stack.Protected guard={!user}>

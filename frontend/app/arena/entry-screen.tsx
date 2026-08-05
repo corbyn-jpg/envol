@@ -44,7 +44,7 @@ export default function ArenaEntryScreen() {
         });
       }
 
-      const speciesSnapshot = await getDocs(collection(db, 'arenas', id, 'species'));
+      const speciesSnapshot = await getDocs(collection(db, 'arenas', id, 'birds'));
       setSpeciesCount(speciesSnapshot.size);
     })();
   }, [id]);
@@ -121,9 +121,7 @@ export default function ArenaEntryScreen() {
 
         <TouchableOpacity
           style={[styles.startButton, { backgroundColor: primary }]}
-          onPress={() => {
-            // TODO: navigate to the Race Active screen once it exists
-          }}
+          onPress={() => router.push({ pathname: '/arena/active-screen', params: { id } })}
         >
           <ThemedText style={styles.startButtonText}>Start Sprint</ThemedText>
         </TouchableOpacity>

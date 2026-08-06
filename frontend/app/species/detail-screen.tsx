@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc, setDoc, arrayUnion } from "firebase/firestore";
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Banner } from "@/components/banner";
 import { ThemedText } from "@/components/themed-text";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
@@ -59,6 +60,7 @@ export default function SpeciesDetailScreen() {
 
   return (
   <SafeAreaView style={styles.container}>
+    <Banner showBack />
     <ScrollView contentContainerStyle={styles.content}>
       <Image source={{ uri: species.imageUrl }} style={styles.fullImage} />
       <ThemedText type="title">{species.commonName}</ThemedText>

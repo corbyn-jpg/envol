@@ -18,6 +18,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import { Banner } from "@/components/banner";
 import { ThemedText } from "@/components/themed-text";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
@@ -140,6 +141,7 @@ export default function ActiveRaceScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Banner showBack />
       <ThemedText type="display" style={styles.timer}>
         {minutes}:{seconds}
       </ThemedText>

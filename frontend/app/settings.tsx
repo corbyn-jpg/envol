@@ -210,9 +210,9 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: Colors.background, marginLeft: 24, marginRight: 24 },
+  safeArea: { flex: 1, backgroundColor: Colors.background },
   flex: { flex: 1 },
-  container: { gap: 24 },
+  container: { gap: 24, marginLeft: 24, marginRight: 24 },
   section: { gap: 8, marginBottom: 12 },
   hint: { fontSize: 12, opacity: 0.7 },
   input: {

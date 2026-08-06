@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 
+import { Banner } from '@/components/banner';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { db } from '@/lib/firebase';
@@ -59,17 +60,8 @@ export default function ArenaEntryScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Banner showBack />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <IconSymbol name="chevron.left" size={24} color={Colors.text} />
-          </TouchableOpacity>
-          <View>
-            <ThemedText style={styles.eyebrow}>ARENA ENTRY</ThemedText>
-            <ThemedText type="subtitle">{arena.name}</ThemedText>
-          </View>
-        </View>
-
         <View style={[styles.activeCard, { borderColor: primary }]}>
           <ThemedText style={[styles.activeLabel, { color: primary }]}>
             ARENA ACTIVE
@@ -139,8 +131,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   content: { padding: 24, gap: 20 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  eyebrow: { fontSize: 11, letterSpacing: 1, opacity: 0.7 },
   activeCard: {
     borderWidth: 1.5,
     borderRadius: 16,

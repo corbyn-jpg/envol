@@ -179,7 +179,7 @@ export default function MapScreen() {
       {/* Top bar */}
       <View style={[styles.header, { paddingTop: insets.top + 12, backgroundColor: primary }]}>
         <View>
-          <ThemedText type="title" style={styles.headerTitle}>
+          <ThemedText type="display" style={styles.headerTitle}>
             Envol
           </ThemedText>
         </View>
@@ -264,7 +264,7 @@ headerEyebrow: {
   letterSpacing: 1,
 },
 headerTitle: {
-  fontSize: 36,
+  fontSize: 26,
   color: '#fff',
 },
 settingsButton: {

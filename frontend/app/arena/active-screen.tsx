@@ -140,7 +140,7 @@ export default function ActiveRaceScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ThemedText type="title" style={styles.timer}>
+      <ThemedText type="display" style={styles.timer}>
         {minutes}:{seconds}
       </ThemedText>
 

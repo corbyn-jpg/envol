@@ -1,6 +1,10 @@
 import { DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Amarante_400Regular } from '@expo-google-fonts/amarante';
-import { Arizonia_400Regular } from '@expo-google-fonts/arizonia';
+import {
+  CinzelDecorative_400Regular,
+  CinzelDecorative_700Bold,
+  CinzelDecorative_900Black,
+} from '@expo-google-fonts/cinzel-decorative';
 import { Tinos_400Regular_Italic } from '@expo-google-fonts/tinos';
 import { useFonts } from 'expo-font';
 import { Stack, SplashScreen } from 'expo-router';
@@ -25,7 +29,9 @@ function SplashScreenController() {
   const { loading: authLoading } = useAuth();
   const [fontsLoaded] = useFonts({
     Amarante_400Regular,
-    Arizonia_400Regular,
+    CinzelDecorative_400Regular,
+    CinzelDecorative_700Bold,
+    CinzelDecorative_900Black,
     Tinos_400Regular_Italic,
   });
 

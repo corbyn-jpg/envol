@@ -50,7 +50,7 @@ export default function LoginScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <ThemedText type="title" style={styles.title}>
+          <ThemedText type="display" style={styles.title}>
             Envol
           </ThemedText>
           <OrnateDivider />

@@ -21,6 +21,8 @@ import { Colors, Fonts } from "@/constants/theme";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { OrnateDivider } from "@/components/ornate-divider";
 import { useTheme } from "@/contexts/theme-context";
+import { MiniTimer } from "@/components/mini-timer";
+import { Banner } from "@/components/banner";
 
 type Arena = {
   id: string;
@@ -133,41 +135,65 @@ export default function MapScreen() {
   }
 
   return (
-      //Creates arena markers
-    <View style={styles.container}>
-      <MapView style={styles.map} initialRegion={region} showsUserLocation>
-        {arenas.map((arena) => (
-          <Marker
-            key={arena.id}
-            coordinate={{
-              latitude: arena.latitude,
-              longitude: arena.longitude,
-            }}
-            title={arena.name}
-            description={arena.province}
-          />
-        ))}
-      </MapView>
+    <SafeAreaView style={styles.container}>
+      <Banner />
 
+      <View style={styles.mapContainer}>
+        {/* Creates arena markers */}
+        <MapView style={styles.map} initialRegion={region} showsUserLocation>
+          {arenas.map((arena) => (
+            <Marker
+              key={arena.id}
+              coordinate={{
+                latitude: arena.latitude,
+                longitude: arena.longitude,
+              }}
+              title={arena.name}
+              description={arena.province}
+            />
+          ))}
+        </MapView>
+
+        <View style={styles.miniTimerFloat}>
+          <MiniTimer />
+        </View>
+      </View>
       {/* Creates an arena around our markers */}
       {nearest && (
-        <View style={[styles.card, { bottom: insets.bottom + 12 + 64 + 12, backgroundColor: primary }]}>
+        <View
+          style={[
+            styles.card,
+            {
+              bottom: insets.bottom + 12 + 64 + 12,
+              backgroundColor: primary,
+            },
+          ]}
+        >
           <ThemedText style={styles.cardLabel}>
             {isActive
               ? "ARENA ACTIVE"
               : `NEAREST ARENA · ${(nearest.distanceMeters / 1000).toFixed(1)} KM`}
           </ThemedText>
-          <ThemedText type="subtitle" style={styles.cardSubtitle}>{nearest.arena.name}</ThemedText>
+          <ThemedText type="subtitle" style={styles.cardSubtitle}>
+            {nearest.arena.name}
+          </ThemedText>
           <ThemedText style={styles.cardDescription}>
             {nearest.arena.description}
           </ThemedText>
           <TouchableOpacity
             style={[
               styles.enterButton,
-              isActive ? { backgroundColor: Colors.accent } : styles.enterButtonDisabled,
+              isActive
+                ? { backgroundColor: Colors.accent }
+                : styles.enterButtonDisabled,
             ]}
             disabled={!isActive}
-            onPress={() => router.push({ pathname: '/arena/entry-screen', params: { id: nearest.arena.id } })}
+            onPress={() =>
+              router.push({
+                pathname: "/arena/entry-screen",
+                params: { id: nearest.arena.id },
+              })
+            }
           >
             <ThemedText style={styles.enterButtonText}>
               {isActive ? "Enter" : "Get closer to enter"}
@@ -175,33 +201,22 @@ export default function MapScreen() {
           </TouchableOpacity>
         </View>
       )}
-
-      {/* Top bar */}
-      <View style={[styles.header, { paddingTop: insets.top + 12, backgroundColor: primary }]}>
-        <View>
-          <ThemedText type="display" style={styles.headerTitle}>
-            Envol
-          </ThemedText>
-        </View>
-        <OrnateDivider/>
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={() => router.push('/settings')}
-          >
-          <IconSymbol
-            name="gearshape.fill"
-            size={22}
-            color={Colors.background}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  mapContainer: {
+    flex: 1,
+  },
+  miniTimerFloat: {
+    position: "absolute",
+    top: 12,
+    left: 16,
+    alignItems: "center",
   },
   card: {
     position: "absolute",
@@ -219,11 +234,11 @@ const styles = StyleSheet.create({
     color: Colors.accent,
   },
   cardSubtitle: {
-    color: '#fff'
+    color: "#fff",
   },
   cardDescription: {
     marginBottom: 8,
-    color: '#fff'
+    color: "#fff",
   },
   enterButton: {
     borderRadius: 8,
@@ -247,31 +262,31 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingHorizontal: 16,
-  paddingBottom: 12,
-  borderBottomWidth: 1.5,
-  borderBottomColor: Colors.accent,
-},
-headerEyebrow: {
-  fontSize: 11,
-  letterSpacing: 1,
-},
-headerTitle: {
-  fontSize: 26,
-  color: '#fff',
-},
-settingsButton: {
-  width: 40,
-  height: 40,
-  borderRadius: 20,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1.5,
+    borderBottomColor: Colors.accent,
+  },
+  headerEyebrow: {
+    fontSize: 11,
+    letterSpacing: 1,
+  },
+  headerTitle: {
+    fontSize: 26,
+    color: "#fff",
+  },
+  settingsButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

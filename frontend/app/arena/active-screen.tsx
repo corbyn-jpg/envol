@@ -22,6 +22,7 @@ import { Banner } from "@/components/banner";
 import { ThemedText } from "@/components/themed-text";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
+import { useRace } from "@/contexts/race-context";
 import { Colors } from "@/constants/theme";
 
 type Species = {
@@ -36,14 +37,11 @@ export default function ActiveRaceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const router = useRouter();
+  const race = useRace();
 
   const [allSpecies, setAllSpecies] = useState<Species[]>([]);
   const [foundSpeciesIds, setFoundSpeciesIds] = useState<string[]>([]);
-  const [accumulatedSeconds, setAccumulatedSeconds] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
-  const [sessionElapsedSeconds, setSessionElapsedSeconds] = useState(0);
 
   // Species list only ever needs fetching once — it doesn't change during a race.
   useEffect(() => {
@@ -62,7 +60,6 @@ export default function ActiveRaceScreen() {
       }));
       setAllSpecies(fetchedSpecies);
       setLoading(false);
-      setSessionStartTime(Date.now());
     })();
   }, [id]);
 
@@ -77,27 +74,40 @@ export default function ActiveRaceScreen() {
         );
         const progress = progressSnapshot.data();
         setFoundSpeciesIds(progress?.foundSpeciesIds ?? []);
-        setAccumulatedSeconds(progress?.accumulatedSeconds ?? 0);
+
+        if (race.arenaId !== id) {
+          race.startRace(id, progress?.accumulatedSeconds ?? 0);
+        }
       })();
     }, [id, user]),
   );
 
   // The clock only starts once sessionStartTime is set (right after the species fetch resolves) — never before we know the real accumulated total.
-  useEffect(() => {
-    if (!sessionStartTime) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (!id || !user) return;
 
-    const interval = setInterval(() => {
-      setSessionElapsedSeconds(
-        Math.floor((Date.now() - sessionStartTime) / 1000),
-      );
-    }, 1000);
+      (async () => {
+        const progressSnapshot = await getDoc(
+          doc(db, "users", user.uid, "raceProgress", id),
+        );
+        const progress = progressSnapshot.data();
+        setFoundSpeciesIds(progress?.foundSpeciesIds ?? []);
 
-    return () => clearInterval(interval);
-  }, [sessionStartTime]);
+        if (race.arenaId !== id) {
+          race.startRace(id, progress?.accumulatedSeconds ?? 0);
+        }
+      })();
+    }, [id, user]),
+  );
 
   const unfoundSpecies = allSpecies.filter(
     (species) => !foundSpeciesIds.includes(species.id),
   );
+
+  //Stops the clock completely when all birds are found
+  const isFullyComplete =
+    allSpecies.length > 0 && foundSpeciesIds.length === allSpecies.length;
 
   async function handleFinish() {
     if (!user || !id) return;
@@ -108,7 +118,7 @@ export default function ActiveRaceScreen() {
     await setDoc(
       doc(db, "users", user.uid, "raceProgress", id),
       {
-        accumulatedSeconds: totalElapsedSeconds,
+        accumulatedSeconds: race.totalElapsedSeconds,
         completed: allFound,
       },
       { merge: true },
@@ -118,23 +128,47 @@ export default function ActiveRaceScreen() {
       await addDoc(collection(db, "raceResults"), {
         userId: user.uid,
         arenaId: id,
-        totalSeconds: totalElapsedSeconds,
+        totalSeconds: race.totalElapsedSeconds,
         speciesFound: foundSpeciesIds.length,
         completedAt: serverTimestamp(),
       });
     }
 
+    race.stopRace();
     router.push("/(tabs)");
   }
 
-  const totalElapsedSeconds = accumulatedSeconds + sessionElapsedSeconds;
-  const minutes = String(Math.floor(totalElapsedSeconds / 60)).padStart(2, "0");
-  const seconds = String(totalElapsedSeconds % 60).padStart(2, "0");
+  useEffect(() => {
+    if (isFullyComplete) {
+      race.stopRace();
+    }
+  }, [isFullyComplete]);
+
+  const minutes = String(Math.floor(race.totalElapsedSeconds / 60)).padStart(
+    2,
+    "0",
+  );
+  const seconds = String(race.totalElapsedSeconds % 60).padStart(2, "0");
 
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
         <ActivityIndicator />
+      </SafeAreaView>
+    );
+  }
+
+  if (isFullyComplete) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Banner showBack />
+        <View style={styles.center}>
+          <ThemedText type="title">All Birds Found!</ThemedText>
+          <ThemedText style={styles.completeMessage}>
+            You've found every bird currently in this arena. Come back once new
+            species are added.
+          </ThemedText>
+        </View>
       </SafeAreaView>
     );
   }
@@ -147,29 +181,36 @@ export default function ActiveRaceScreen() {
       </ThemedText>
 
       <ScrollView contentContainerStyle={styles.list}>
-  {allSpecies.map((species) => {
-    const found = foundSpeciesIds.includes(species.id);
+        {allSpecies.map((species) => {
+          const found = foundSpeciesIds.includes(species.id);
 
-    return (
-      <TouchableOpacity
-        key={species.id}
-        style={[styles.row, found && styles.rowFound]}
-        onPress={() =>
-          router.push({
-            pathname: "/species/detail-screen",
-            params: { arenaId: id, speciesId: species.id },
-          })
-        }
-      >
-        <Image source={{ uri: species.imageUrl }} style={styles.thumbnail} />
-        <View style={styles.rowText}>
-          <ThemedText type="defaultSemiBold">{species.commonName}</ThemedText>
-          <ThemedText type="scientific">{species.scientificName}</ThemedText>
-        </View>
-      </TouchableOpacity>
-    );
-  })}
-</ScrollView>
+          return (
+            <TouchableOpacity
+              key={species.id}
+              style={[styles.row, found && styles.rowFound]}
+              onPress={() =>
+                router.push({
+                  pathname: "/species/detail-screen",
+                  params: { arenaId: id, speciesId: species.id },
+                })
+              }
+            >
+              <Image
+                source={{ uri: species.imageUrl }}
+                style={styles.thumbnail}
+              />
+              <View style={styles.rowText}>
+                <ThemedText type="defaultSemiBold">
+                  {species.commonName}
+                </ThemedText>
+                <ThemedText type="scientific">
+                  {species.scientificName}
+                </ThemedText>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       {/* Bottom bar */}
       <View style={styles.bottomBar}>
@@ -208,6 +249,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.background,
   },
+  completeMessage: { textAlign: "center", marginTop: 8, paddingHorizontal: 24 },
   timer: { textAlign: "center", marginVertical: 16 },
   list: { paddingHorizontal: 24, paddingBottom: 24, gap: 12 },
   row: {
@@ -221,8 +263,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   rowFound: {
-  opacity: 0.5,
-},
+    opacity: 0.5,
+  },
   thumbnail: { width: 48, height: 48, borderRadius: 24 },
   rowText: { flex: 1, gap: 2 },
   bottomBar: {

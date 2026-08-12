@@ -134,8 +134,13 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     gap: 12,
   },
-  title: { textAlign: "center" },
-  subtitle: { textAlign: "center", marginBottom: 8 },
+  title: {
+    textAlign: "center",
+  },
+  subtitle: {
+    textAlign: "center",
+    marginBottom: 8,
+  },
   card: {
     width: "100%",
     borderWidth: 1.5,
@@ -155,14 +160,23 @@ const styles = StyleSheet.create({
     color: Colors.text,
     backgroundColor: "#fff",
   },
-  error: { color: "#B00020", fontFamily: Fonts.body },
+  error: {
+    color: "#B00020",
+    fontFamily: Fonts.body,
+  },
   button: {
     borderRadius: 8,
     padding: 14,
     alignItems: "center",
     marginTop: 4,
   },
-  buttonText: { color: Colors.background, fontFamily: Fonts.bodySemiBold },
-  link: { marginTop: 4, alignSelf: "center" },
+  buttonText: {
+    color: Colors.background,
+    fontFamily: Fonts.bodySemiBold,
+  },
+  link: {
+    marginTop: 4,
+    alignSelf: "center",
+  },
   linkText: {},
 });

@@ -77,21 +77,30 @@ export default function SpeciesDetailScreen() {
 
 const styles = StyleSheet.create({
   container: {
-  flex: 1,
-  backgroundColor: Colors.background,
-},
-content: {
-  padding: 24,
-  gap: 12,
-},
-fullImage: { width: "100%", height: 260, borderRadius: 12 },
-funFact: { marginTop: 8 },
-foundButton: {
-  backgroundColor: Colors.text,
-  borderRadius: 8,
-  paddingVertical: 16,
-  alignItems: "center",
-  margin: 24,
-},
-foundButtonText: { color: Colors.background, fontFamily: Fonts.bodySemiBold },
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  content: {
+    padding: 24,
+    gap: 12,
+  },
+  fullImage: {
+    width: "100%",
+    height: 260,
+    borderRadius: 12,
+  },
+  funFact: {
+    marginTop: 8,
+  },
+  foundButton: {
+    backgroundColor: Colors.text,
+    borderRadius: 8,
+    paddingVertical: 16,
+    alignItems: "center",
+    margin: 24,
+  },
+  foundButtonText: {
+    color: Colors.background,
+    fontFamily: Fonts.bodySemiBold,
+  },
 });

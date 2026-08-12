@@ -261,32 +261,4 @@ const styles = StyleSheet.create({
   enterButtonDisabled: {
     backgroundColor: Colors.background,
   },
-  header: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1.5,
-    borderBottomColor: Colors.accent,
-  },
-  headerEyebrow: {
-    fontSize: 11,
-    letterSpacing: 1,
-  },
-  headerTitle: {
-    fontSize: 26,
-    color: "#fff",
-  },
-  settingsButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
 });

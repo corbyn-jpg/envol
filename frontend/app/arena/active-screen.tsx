@@ -82,25 +82,6 @@ export default function ActiveRaceScreen() {
     }, [id, user]),
   );
 
-  // The clock only starts once sessionStartTime is set (right after the species fetch resolves) — never before we know the real accumulated total.
-  useFocusEffect(
-    useCallback(() => {
-      if (!id || !user) return;
-
-      (async () => {
-        const progressSnapshot = await getDoc(
-          doc(db, "users", user.uid, "raceProgress", id),
-        );
-        const progress = progressSnapshot.data();
-        setFoundSpeciesIds(progress?.foundSpeciesIds ?? []);
-
-        if (race.arenaId !== id) {
-          race.startRace(id, progress?.accumulatedSeconds ?? 0);
-        }
-      })();
-    }, [id, user]),
-  );
-
   const unfoundSpecies = allSpecies.filter(
     (species) => !foundSpeciesIds.includes(species.id),
   );
@@ -242,16 +223,30 @@ export default function ActiveRaceScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.background,
   },
-  completeMessage: { textAlign: "center", marginTop: 8, paddingHorizontal: 24 },
-  timer: { textAlign: "center", marginVertical: 16 },
-  list: { paddingHorizontal: 24, paddingBottom: 24, gap: 12 },
+  completeMessage: {
+    textAlign: "center",
+    marginTop: 8,
+    paddingHorizontal: 24,
+  },
+  timer: {
+    textAlign: "center",
+    marginVertical: 16,
+  },
+  list: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    gap: 12,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -265,8 +260,15 @@ const styles = StyleSheet.create({
   rowFound: {
     opacity: 0.5,
   },
-  thumbnail: { width: 48, height: 48, borderRadius: 24 },
-  rowText: { flex: 1, gap: 2 },
+  thumbnail: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  rowText: {
+    flex: 1,
+    gap: 2,
+  },
   bottomBar: {
     flexDirection: "row",
     gap: 8,
@@ -282,10 +284,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
-  barButtonText: { fontSize: 13 },
+  barButtonText: {
+    fontSize: 13,
+  },
   finishButton: {
     backgroundColor: Colors.text,
     borderColor: Colors.text,
   },
-  finishButtonText: { color: Colors.background, fontWeight: "600" },
+  finishButtonText: {
+    color: Colors.background,
+    fontWeight: "600",
+  },
 });

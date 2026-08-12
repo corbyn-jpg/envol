@@ -210,11 +210,26 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: Colors.background },
-  flex: { flex: 1 },
-  container: { gap: 24, marginLeft: 24, marginRight: 24 },
-  section: { gap: 8, marginBottom: 12 },
-  hint: { fontSize: 12, opacity: 0.7 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  flex: {
+    flex: 1,
+  },
+  container: {
+    gap: 24,
+    marginLeft: 24,
+    marginRight: 24,
+  },
+  section: {
+    gap: 8,
+    marginBottom: 12,
+  },
+  hint: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
   input: {
     borderWidth: 1,
     borderColor: Colors.accent,
@@ -230,9 +245,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
-  saveButtonText: { color: Colors.background, fontFamily: Fonts.bodySemiBold },
+  saveButtonText: {
+    color: Colors.background,
+    fontFamily: Fonts.bodySemiBold,
+  },
   savedText: {},
-  errorText: { color: "#B00020" },
+  errorText: {
+    color: "#B00020",
+  },
   themeOption: {
     borderWidth: 1,
     borderColor: Colors.accent,
@@ -249,5 +269,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
   },
-  logOutButtonText: { color: "#B00020", fontFamily: Fonts.bodySemiBold },
+  logOutButtonText: {
+    color: "#B00020",
+    fontFamily: Fonts.bodySemiBold,
+  },
 });

@@ -123,14 +123,20 @@ export default function ArenaEntryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.background,
   },
-  content: { padding: 24, gap: 20 },
+  content: {
+    padding: 24,
+    gap: 20,
+  },
   activeCard: {
     borderWidth: 1.5,
     borderRadius: 16,
@@ -138,12 +144,31 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: '#fff',
   },
-  activeLabel: { fontSize: 12, letterSpacing: 0.5 },
-  arenaSubtitle: { marginBottom: 8 },
-  statsRow: { flexDirection: 'row', gap: 24, marginTop: 8 },
-  stat: { gap: 2 },
-  statLabel: { fontSize: 11, letterSpacing: 0.5, opacity: 0.7 },
-  sectionLabel: { fontSize: 12, letterSpacing: 1, opacity: 0.7 },
+  activeLabel: {
+    fontSize: 12,
+    letterSpacing: 0.5,
+  },
+  arenaSubtitle: {
+    marginBottom: 8,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 24,
+    marginTop: 8,
+  },
+  stat: {
+    gap: 2,
+  },
+  statLabel: {
+    fontSize: 11,
+    letterSpacing: 0.5,
+    opacity: 0.7,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    letterSpacing: 1,
+    opacity: 0.7,
+  },
   modeCard: {
     flexDirection: 'row',
     gap: 12,
@@ -159,9 +184,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modeTextContainer: { flex: 1, gap: 2 },
-  modeSubtitle: { opacity: 0.7 },
-  modeDescription: { marginTop: 4 },
+  modeTextContainer: {
+    flex: 1,
+    gap: 2,
+  },
+  modeSubtitle: {
+    opacity: 0.7,
+  },
+  modeDescription: {
+    marginTop: 4,
+  },
   tipsCard: {
     borderWidth: 1,
     borderColor: Colors.accent,
@@ -177,5 +209,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
-  startButtonText: { color: Colors.background, fontFamily: Fonts.bodySemiBold },
+  startButtonText: {
+    color: Colors.background,
+    fontFamily: Fonts.bodySemiBold,
+  },
 });

@@ -42,6 +42,7 @@ export default function ActiveRaceScreen() {
   const [allSpecies, setAllSpecies] = useState<Species[]>([]);
   const [foundSpeciesIds, setFoundSpeciesIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [alreadyRecorded, setAlreadyRecorded] = useState(false);
 
   // Species list only ever needs fetching once — it doesn't change during a race.
   useEffect(() => {
@@ -74,6 +75,7 @@ export default function ActiveRaceScreen() {
         );
         const progress = progressSnapshot.data();
         setFoundSpeciesIds(progress?.foundSpeciesIds ?? []);
+        setAlreadyRecorded(progress?.completed ?? false);
 
         if (race.arenaId !== id) {
           race.startRace(id, progress?.accumulatedSeconds ?? 0);
@@ -93,37 +95,55 @@ export default function ActiveRaceScreen() {
   async function handleFinish() {
     if (!user || !id) return;
 
-    const allFound =
-      foundSpeciesIds.length === allSpecies.length && allSpecies.length > 0;
-
     await setDoc(
       doc(db, "users", user.uid, "raceProgress", id),
       {
         accumulatedSeconds: race.totalElapsedSeconds,
-        completed: allFound,
+        completed: false,
       },
       { merge: true },
     );
-
-    if (allFound) {
-      await addDoc(collection(db, "raceResults"), {
-        userId: user.uid,
-        arenaId: id,
-        totalSeconds: race.totalElapsedSeconds,
-        speciesFound: foundSpeciesIds.length,
-        completedAt: serverTimestamp(),
-      });
-    }
 
     race.stopRace();
     router.push("/(tabs)");
   }
 
+  // Completion is detected purely from found-species count, so it can happen
+  // the moment the last bird is marked found on the detail screen — before the
+  // user is ever back here to tap Finish. Recording the result has to run here,
+  // not in handleFinish, or races finished that way would never reach the leaderboard.
+  // `alreadyRecorded` (from raceProgress.completed) stops this from writing a
+  // duplicate raceResults doc every time the player revisits this screen.
   useEffect(() => {
-    if (isFullyComplete) {
-      race.stopRace();
-    }
-  }, [isFullyComplete]);
+    if (!isFullyComplete || alreadyRecorded || !user || !id) return;
+
+    race.stopRace();
+
+    (async () => {
+      await setDoc(
+        doc(db, "users", user.uid, "raceProgress", id),
+        {
+          accumulatedSeconds: race.totalElapsedSeconds,
+          completed: true,
+        },
+        { merge: true },
+      );
+
+      const userSnapshot = await getDoc(doc(db, "users", user.uid));
+      const displayName = userSnapshot.data()?.displayName || "Anonymous Birder";
+
+      await addDoc(collection(db, "raceResults"), {
+        userId: user.uid,
+        displayName,
+        arenaId: id,
+        totalSeconds: race.totalElapsedSeconds,
+        speciesFound: foundSpeciesIds.length,
+        completedAt: serverTimestamp(),
+      });
+
+      setAlreadyRecorded(true);
+    })();
+  }, [isFullyComplete, alreadyRecorded, user, id]);
 
   const minutes = String(Math.floor(race.totalElapsedSeconds / 60)).padStart(
     2,

@@ -169,6 +169,24 @@ export default function ActiveRaceScreen() {
             You've found every bird currently in this arena. Come back once new
             species are added.
           </ThemedText>
+
+          <View style={styles.completeActions}>
+            <TouchableOpacity
+              style={styles.completeButton}
+              onPress={() => router.push("/(tabs)")}
+            >
+              <ThemedText style={styles.completeButtonText}>Map</ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.completeButton, styles.completeButtonPrimary]}
+              onPress={() => router.push("/(tabs)/leaderboard")}
+            >
+              <ThemedText style={styles.completeButtonPrimaryText}>
+                Leaderboard
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -257,6 +275,30 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
     paddingHorizontal: 24,
+  },
+  completeActions: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
+  },
+  completeButton: {
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
+  completeButtonText: {
+    fontSize: 13,
+  },
+  completeButtonPrimary: {
+    backgroundColor: Colors.text,
+    borderColor: Colors.text,
+  },
+  completeButtonPrimaryText: {
+    color: Colors.background,
+    fontWeight: "600",
   },
   timer: {
     textAlign: "center",

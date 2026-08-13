@@ -6,6 +6,7 @@ import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'fireb
 
 import { Banner } from '@/components/banner';
 import { ThemedText } from '@/components/themed-text';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase';
 import { MEDALS, type MedalContext } from '@/lib/medals';
@@ -121,7 +122,12 @@ export default function MedalsScreen() {
                   {medal.name}
                 </ThemedText>
                 <ThemedText style={styles.cardDescription}>{medal.description}</ThemedText>
-                {isFavourite && <ThemedText style={styles.favouriteTag}>★ Favourite</ThemedText>}
+                {isFavourite && (
+                  <View style={styles.favouriteTag}>
+                    <IconSymbol name="star.fill" size={12} color={Colors.text} />
+                    <ThemedText style={styles.favouriteTagText}>Favourite</ThemedText>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })}
@@ -176,9 +182,14 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   favouriteTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  favouriteTagText: {
     fontSize: 11,
     color: Colors.text,
     fontFamily: Fonts.bodySemiBold,
-    marginTop: 4,
   },
 });

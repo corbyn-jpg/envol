@@ -23,6 +23,9 @@ const MAPPING = {
   'rosette': 'military-tech',
   'gearshape.fill': 'settings',
   'stopwatch.fill': 'timer',
+  'crown.fill': 'emoji-events',
+  'star.fill': 'star',
+  'checkmark': 'check',
 } as IconMapping;
 
 /**

@@ -7,6 +7,7 @@ import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { Banner } from '@/components/banner';
 import { MiniTimer } from '@/components/mini-timer';
 import { ThemedText } from '@/components/themed-text';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/contexts/auth-context';
 import { useRace } from '@/contexts/race-context';
 import { useNearbyArena } from '@/hooks/use-nearby-arena';
@@ -138,7 +139,8 @@ export default function LedgerScreen() {
               <ThemedText type="scientific">{species.scientificName}</ThemedText>
             </View>
             <View style={styles.foundPill}>
-              <ThemedText style={styles.foundPillText}>✓ Found</ThemedText>
+              <IconSymbol name="checkmark" size={11} color={Colors.background} />
+              <ThemedText style={styles.foundPillText}>Found</ThemedText>
             </View>
           </View>
         ))}
@@ -261,6 +263,9 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   foundPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: Colors.text,
     borderRadius: 12,
     paddingHorizontal: 10,

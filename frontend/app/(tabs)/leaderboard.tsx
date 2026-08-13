@@ -1,14 +1,16 @@
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 
 import { Banner } from '@/components/banner';
 import { ThemedText } from '@/components/themed-text';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/contexts/auth-context';
 import { useNearbyArena } from '@/hooks/use-nearby-arena';
 import { db } from '@/lib/firebase';
+import { getMedal } from '@/lib/medals';
 import { Colors, Fonts } from '@/constants/theme';
 
 type RaceResult = {
@@ -71,6 +73,7 @@ export default function LeaderboardScreen() {
   const arenaName = nearest?.arena.name ?? '';
 
   const [allResults, setAllResults] = useState<RaceResult[]>([]);
+  const [favouritesByUser, setFavouritesByUser] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [showThisWeek, setShowThisWeek] = useState(true);
 
@@ -83,18 +86,27 @@ export default function LeaderboardScreen() {
         const snapshot = await getDocs(
           query(collection(db, 'raceResults'), where('arenaId', '==', arenaId))
         );
-        setAllResults(
-          snapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              userId: data.userId,
-              displayName: data.displayName,
-              speciesFound: data.speciesFound,
-              totalSeconds: data.totalSeconds,
-              completedAt: data.completedAt.toDate(),
-            };
-          })
-        );
+        const results = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            userId: data.userId,
+            displayName: data.displayName,
+            speciesFound: data.speciesFound,
+            totalSeconds: data.totalSeconds,
+            completedAt: data.completedAt.toDate(),
+          };
+        });
+        setAllResults(results);
+
+        // Look up each unique racer's chosen favourite medal, so it can render next to their name.
+        const uniqueUserIds = [...new Set(results.map((result) => result.userId))];
+        const favourites: Record<string, string | null> = {};
+        for (const userId of uniqueUserIds) {
+          const userSnapshot = await getDoc(doc(db, 'users', userId));
+          favourites[userId] = userSnapshot.data()?.favouriteMedalId ?? null;
+        }
+        setFavouritesByUser(favourites);
+
         setLoading(false);
       })();
     }, [arenaId])
@@ -177,13 +189,21 @@ export default function LeaderboardScreen() {
                   key={entry.userId}
                   style={[styles.podiumSlot, slot === 1 && styles.podiumSlotFirst]}
                 >
-                  {slot === 1 && <ThemedText style={styles.crown}>👑</ThemedText>}
+                  {slot === 1 && (
+                    <IconSymbol name="crown.fill" size={20} color={Colors.accent} />
+                  )}
                   <View style={[styles.avatar, slot === 1 && styles.avatarFirst]}>
                     <ThemedText style={styles.avatarText}>
                       {getInitials(entry.displayName)}
                     </ThemedText>
                   </View>
                   <ThemedText style={styles.podiumName}>{entry.displayName}</ThemedText>
+                  {getMedal(favouritesByUser[entry.userId]) && (
+                    <Image
+                      source={getMedal(favouritesByUser[entry.userId])!.image}
+                      style={styles.podiumMedal}
+                    />
+                  )}
                   <ThemedText type="defaultSemiBold">{entry.speciesFound}</ThemedText>
                   <ThemedText style={styles.podiumTime}>{formatTime(entry.totalSeconds)}</ThemedText>
                 </View>
@@ -206,6 +226,12 @@ export default function LeaderboardScreen() {
               </ThemedText>
             </View>
             <ThemedText style={styles.rowName}>{entry.displayName}</ThemedText>
+            {getMedal(favouritesByUser[entry.userId]) && (
+              <Image
+                source={getMedal(favouritesByUser[entry.userId])!.image}
+                style={styles.rowMedal}
+              />
+            )}
             <ThemedText style={styles.rowTime}>{formatTime(entry.totalSeconds)}</ThemedText>
             <ThemedText type="defaultSemiBold">{entry.speciesFound}</ThemedText>
           </View>
@@ -289,9 +315,6 @@ const styles = StyleSheet.create({
   podiumSlotFirst: {
     marginBottom: 16,
   },
-  crown: {
-    fontSize: 20,
-  },
   avatar: {
     width: 56,
     height: 56,
@@ -317,6 +340,10 @@ const styles = StyleSheet.create({
   podiumTime: {
     fontSize: 11,
     opacity: 0.7,
+  },
+  podiumMedal: {
+    width: 20,
+    height: 20,
   },
   row: {
     flexDirection: 'row',
@@ -355,5 +382,9 @@ const styles = StyleSheet.create({
   rowTime: {
     fontSize: 12,
     opacity: 0.7,
+  },
+  rowMedal: {
+    width: 18,
+    height: 18,
   },
 });

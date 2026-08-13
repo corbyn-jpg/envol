@@ -49,6 +49,12 @@ function getStartOfWeek(): Date {
   return monday;
 }
 
+function formatTime(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
@@ -179,6 +185,7 @@ export default function LeaderboardScreen() {
                   </View>
                   <ThemedText style={styles.podiumName}>{entry.displayName}</ThemedText>
                   <ThemedText type="defaultSemiBold">{entry.speciesFound}</ThemedText>
+                  <ThemedText style={styles.podiumTime}>{formatTime(entry.totalSeconds)}</ThemedText>
                 </View>
               ) : (
                 <View key={`empty-${slot}`} style={styles.podiumSlot} />
@@ -199,6 +206,7 @@ export default function LeaderboardScreen() {
               </ThemedText>
             </View>
             <ThemedText style={styles.rowName}>{entry.displayName}</ThemedText>
+            <ThemedText style={styles.rowTime}>{formatTime(entry.totalSeconds)}</ThemedText>
             <ThemedText type="defaultSemiBold">{entry.speciesFound}</ThemedText>
           </View>
         ))}
@@ -306,6 +314,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
   },
+  podiumTime: {
+    fontSize: 11,
+    opacity: 0.7,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -339,5 +351,9 @@ const styles = StyleSheet.create({
   },
   rowName: {
     flex: 1,
+  },
+  rowTime: {
+    fontSize: 12,
+    opacity: 0.7,
   },
 });

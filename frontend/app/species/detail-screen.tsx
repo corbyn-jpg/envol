@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc, setDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, setDoc, arrayUnion, serverTimestamp } from "firebase/firestore";
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Banner } from "@/components/banner";
 import { ThemedText } from "@/components/themed-text";
@@ -47,9 +47,18 @@ export default function SpeciesDetailScreen() {
   async function handleFound() {
     if (!user || !arenaId || !speciesId) return;
 
+    const progressRef = doc(db, "users", user.uid, "raceProgress", arenaId);
+    const progressSnapshot = await getDoc(progressRef);
+
     await setDoc(
-      doc(db, "users", user.uid, "raceProgress", arenaId),
-      { foundSpeciesIds: arrayUnion(speciesId) },
+      progressRef,
+      {
+        //Found species id unions the given species with any array value
+        foundSpeciesIds: arrayUnion(speciesId),
+        //Returns a sentinel to include a server-generated timestamp in the written data.
+        foundAt: { [speciesId]: serverTimestamp() },
+        ...(progressSnapshot.data()?.startedAt ? {} : { startedAt: serverTimestamp() }),
+      },
       { merge: true },
     );
 

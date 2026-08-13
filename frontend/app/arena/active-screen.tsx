@@ -15,6 +15,7 @@ import {
   getDoc,
   getDocs,
   collection,
+  runTransaction,
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -81,11 +82,7 @@ export default function ActiveRaceScreen() {
           race.startRace(id, progress?.accumulatedSeconds ?? 0);
         }
       })();
-    }, [id, user]),
-  );
-
-  const unfoundSpecies = allSpecies.filter(
-    (species) => !foundSpeciesIds.includes(species.id),
+    }, [id, user, race.arenaId]),
   );
 
   //Stops the clock completely when all birds are found
@@ -108,12 +105,7 @@ export default function ActiveRaceScreen() {
     router.push("/(tabs)");
   }
 
-  // Completion is detected purely from found-species count, so it can happen
-  // the moment the last bird is marked found on the detail screen — before the
-  // user is ever back here to tap Finish. Recording the result has to run here,
-  // not in handleFinish, or races finished that way would never reach the leaderboard.
-  // `alreadyRecorded` (from raceProgress.completed) stops this from writing a
-  // duplicate raceResults doc every time the player revisits this screen.
+  // Completion is detected purely from found-species count, so it can happen  the moment the last bird is marked found on the detail screen
   useEffect(() => {
     if (!isFullyComplete || alreadyRecorded || !user || !id) return;
 
@@ -131,6 +123,15 @@ export default function ActiveRaceScreen() {
 
       const userSnapshot = await getDoc(doc(db, "users", user.uid));
       const displayName = userSnapshot.data()?.displayName || "Anonymous Birder";
+
+      // First person to ever fully complete this arena claims First Blood
+      await runTransaction(db, async (transaction) => {
+        const arenaRef = doc(db, "arenas", id);
+        const arenaSnapshot = await transaction.get(arenaRef);
+        if (!arenaSnapshot.data()?.firstCompletedBy) {
+          transaction.update(arenaRef, { firstCompletedBy: user.uid });
+        }
+      });
 
       await addDoc(collection(db, "raceResults"), {
         userId: user.uid,

@@ -179,7 +179,10 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
             style={[styles.toggleButton, showThisWeek && styles.toggleButtonActive]}
             onPress={() => setShowThisWeek(true)}
           >
-            <ThemedText style={showThisWeek ? styles.toggleTextActive : styles.toggleText}>
+            <ThemedText
+              numberOfLines={1}
+              style={showThisWeek ? styles.toggleTextActive : styles.toggleText}
+            >
               This Week
             </ThemedText>
           </TouchableOpacity>
@@ -187,7 +190,10 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
             style={[styles.toggleButton, !showThisWeek && styles.toggleButtonActive]}
             onPress={() => setShowThisWeek(false)}
           >
-            <ThemedText style={!showThisWeek ? styles.toggleTextActive : styles.toggleText}>
+            <ThemedText
+              numberOfLines={1}
+              style={!showThisWeek ? styles.toggleTextActive : styles.toggleText}
+            >
               All Time
             </ThemedText>
           </TouchableOpacity>

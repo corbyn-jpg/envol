@@ -297,7 +297,9 @@ export default function Settings() {
           </View>
 
           <TouchableOpacity style={styles.logOutButton} onPress={logOut}>
-            <ThemedText style={styles.logOutButtonText}>Log Out</ThemedText>
+            <ThemedText numberOfLines={1} style={styles.logOutButtonText}>
+              Log Out
+            </ThemedText>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

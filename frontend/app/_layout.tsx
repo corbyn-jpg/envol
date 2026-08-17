@@ -96,9 +96,10 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  //Ensures that screen orientation is portrait but only on set pages
+  //Every screen is landscape-capable, so nothing is locked to portrait.
+  //Unlocking explicitly also clears any lock left over from an earlier build.
   useEffect(() => {
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    ScreenOrientation.unlockAsync();
   }, []);
 
   return (

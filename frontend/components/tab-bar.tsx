@@ -2,14 +2,24 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { StyleSheet, View } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { Colors } from '@/constants/theme';
+import { Colors, Layout } from '@/constants/theme';
 
 // A fully custom tab bar
 export function TabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   return (
 
-    //Ensures that the navbar fits every phone
-    <View style={[styles.bar, { bottom: insets.bottom + 12 }]}>
+    //Ensures that the navbar fits every phone. In landscape the side insets are
+    //non-zero on notched devices, so they're added to the horizontal offsets.
+    <View
+      style={[
+        styles.bar,
+        {
+          bottom: insets.bottom + 12,
+          left: insets.left + 12,
+          right: insets.right + 12,
+        },
+      ]}
+    >
       {state.routes.map((route, index) => {
 
       { /* Pulls out the specific tab config */}
@@ -43,9 +53,9 @@ export function TabBar({ state, descriptors, navigation, insets }: BottomTabBarP
 const styles = StyleSheet.create({
   bar: {
     position: 'absolute',
-    left: 12,
-    right: 12,
     height: 64,
+    maxWidth: Layout.contentMaxWidth,
+    marginHorizontal: 'auto',
     paddingHorizontal: 10,
     borderRadius: 32,
     borderWidth: 1.5,

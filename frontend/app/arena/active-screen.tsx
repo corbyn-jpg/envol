@@ -24,7 +24,7 @@ import { ThemedText } from "@/components/themed-text";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
 import { useRace } from "@/contexts/race-context";
-import { Colors } from "@/constants/theme";
+import { Colors, Layout } from "@/constants/theme";
 import { Skeleton, SkeletonRow } from '@/components/skeleton';
 
 type Species = {
@@ -186,7 +186,7 @@ export default function ActiveRaceScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <Banner showBack />
-        <View style={styles.center}>
+        <ScrollView contentContainerStyle={styles.centerContent}>
           <ThemedText type="title">All Birds Found!</ThemedText>
           <ThemedText style={styles.completeMessage}>
             You've found every bird currently in this arena. Come back once new
@@ -210,7 +210,7 @@ export default function ActiveRaceScreen() {
               </ThemedText>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -221,7 +221,7 @@ export default function ActiveRaceScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <Banner showBack />
-        <View style={styles.center}>
+        <ScrollView contentContainerStyle={styles.centerContent}>
           <ThemedText type="display" style={styles.timer}>
             {minutes}:{seconds}
           </ThemedText>
@@ -258,7 +258,7 @@ export default function ActiveRaceScreen() {
               <ThemedText style={styles.completeButtonText}>Ledger</ThemedText>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -346,6 +346,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.background,
   },
+  // flexGrow rather than flex so the content still centres on a tall screen but
+  // scrolls instead of clipping on a short landscape one.
+  centerContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
   completeMessage: {
     textAlign: "center",
     marginTop: 8,
@@ -398,6 +406,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 24,
     gap: 12,
+    width: "100%",
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: "center",
   },
   row: {
     flexDirection: "row",
@@ -427,6 +438,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: Colors.accent,
+    width: "100%",
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: "center",
   },
   barButton: {
     flex: 1,

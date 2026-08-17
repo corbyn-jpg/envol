@@ -27,7 +27,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/auth-context";
 import { db } from "@/lib/firebase";
 import { MEDALS, type MedalContext } from "@/lib/medals";
-import { Colors, Fonts } from "@/constants/theme";
+import { Colors, Fonts, Layout } from "@/constants/theme";
 import { Skeleton } from '@/components/skeleton';
 
 export default function MedalsScreen() {
@@ -193,6 +193,9 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     gap: 16,
+    width: "100%",
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: "center",
   },
   hint: {
     fontSize: 12,

@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useRace } from '@/contexts/race-context';
 import { useNearbyArena } from '@/hooks/use-nearby-arena';
 import { db } from '@/lib/firebase';
-import { Colors, Fonts } from '@/constants/theme';
+import { Colors, Fonts, Layout } from '@/constants/theme';
 import { Skeleton, SkeletonRow } from '@/components/skeleton';
 
 
@@ -83,7 +83,9 @@ export default function LedgerScreen() {
       <SafeAreaView style={styles.container}>
         <Banner />
         <View style={styles.emptyState}>
-          <ThemedText type="subtitle">No Arena Nearby</ThemedText>
+          <ThemedText type="subtitle" style={styles.emptyTitle}>
+            No Arena Nearby
+          </ThemedText>
           <ThemedText style={styles.emptyText}>
             Get closer to an arena to see your ledger here.
           </ThemedText>
@@ -204,6 +206,13 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     gap: 16,
+    width: '100%',
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: 'center',
+  },
+  emptyTitle: {
+    alignSelf: 'stretch',
+    textAlign: 'center',
   },
   ledgerHeader: {
     flexDirection: 'row',

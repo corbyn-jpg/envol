@@ -9,7 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { db } from '@/lib/firebase';
 import { getCurrentSeason } from '@/lib/season';
-import { Colors, Fonts } from '@/constants/theme';
+import { Colors, Fonts, Layout } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
 type ArenaDetails = {
@@ -136,6 +136,9 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     gap: 20,
+    width: '100%',
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: 'center',
   },
   activeCard: {
     borderWidth: 1.5,

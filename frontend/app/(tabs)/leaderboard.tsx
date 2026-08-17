@@ -27,7 +27,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useNearbyArena } from "@/hooks/use-nearby-arena";
 import { db } from "@/lib/firebase";
 import { getMedal } from "@/lib/medals";
-import { Colors, Fonts } from "@/constants/theme";
+import { Colors, Fonts, Layout } from "@/constants/theme";
 import { Skeleton, SkeletonRow } from "@/components/skeleton";
 
 type RaceResult = {
@@ -401,6 +401,9 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     gap: 16,
+    width: "100%",
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: "center",
   },
   eyebrow: {
     fontSize: 11,

@@ -14,12 +14,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { Banner } from "@/components/banner";
 import { ThemedText } from "@/components/themed-text";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
-import { Colors, Fonts } from "@/constants/theme";
+import { Colors, Fonts, Layout } from "@/constants/theme";
 import * as ImagePicker from "expo-image-picker";
 import { parseExifDate, wasTakenToday } from "@/lib/photo-verification";
 
@@ -40,6 +41,10 @@ export default function SpeciesDetailScreen() {
   const [species, setSpecies] = useState<SpeciesDetails | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+
+  //A 260px hero image eats most of a landscape viewport, so it shrinks there
+  const { width, height } = useWindowDimensions();
+  const imageHeight = width > height ? 180 : 260;
 
   useEffect(() => {
     if (!arenaId || !speciesId) return;
@@ -133,7 +138,10 @@ export default function SpeciesDetailScreen() {
     <SafeAreaView style={styles.container}>
       <Banner showBack />
       <ScrollView contentContainerStyle={styles.content}>
-        <Image source={{ uri: species.imageUrl }} style={styles.fullImage} />
+        <Image
+          source={{ uri: species.imageUrl }}
+          style={[styles.fullImage, { height: imageHeight }]}
+        />
         <ThemedText type="title">{species.commonName}</ThemedText>
         <ThemedText type="scientific">{species.scientificName}</ThemedText>
         <ThemedText style={styles.funFact}>{species.funFact}</ThemedText>
@@ -164,10 +172,12 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     gap: 12,
+    width: "100%",
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: "center",
   },
   fullImage: {
     width: "100%",
-    height: 260,
     borderRadius: 12,
   },
   funFact: {

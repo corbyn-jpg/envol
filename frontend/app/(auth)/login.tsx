@@ -14,7 +14,7 @@ import { ThemedText } from "@/components/themed-text";
 import { OrnateDivider } from "@/components/ornate-divider";
 import { useAuth } from "@/contexts/auth-context";
 import { useTheme } from "@/contexts/theme-context";
-import { Colors, Fonts } from "@/constants/theme";
+import { Colors, Fonts, Layout } from "@/constants/theme";
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "100%",
+    maxWidth: Layout.contentMaxWidth,
     borderWidth: 1.5,
     borderColor: Colors.accent,
     borderRadius: 12,

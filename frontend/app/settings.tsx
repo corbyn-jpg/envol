@@ -23,7 +23,7 @@ import { ThemedText } from "@/components/themed-text";
 import { useAuth } from "@/contexts/auth-context";
 import { useTheme } from "@/contexts/theme-context";
 import { db } from "@/lib/firebase";
-import { Colors, Fonts, type Season } from "@/constants/theme";
+import { Colors, Fonts, Layout, type Season } from "@/constants/theme";
 
 export default function Settings() {
   const { user, logOut } = useAuth();
@@ -320,8 +320,10 @@ const styles = StyleSheet.create({
   },
   container: {
     gap: 24,
-    marginLeft: 24,
-    marginRight: 24,
+    paddingHorizontal: 24,
+    width: "100%",
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: "center",
   },
   section: {
     gap: 8,

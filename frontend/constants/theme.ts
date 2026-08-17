@@ -9,6 +9,12 @@ export const SeasonPrimaries: Record<Season, string> = {
 };
 
 
+// Caps how wide page content grows. Without it, landscape and tablet layouts
+// stretch rows and cards across the whole viewport and read as broken.
+export const Layout = {
+  contentMaxWidth: 560,
+};
+
 export const Colors = {
   text: '#361A07',
   background: '#f0ebd4',

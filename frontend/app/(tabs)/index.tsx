@@ -15,8 +15,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getDistanceMeters } from "@/lib/distance";
 import { ThemedText } from "@/components/themed-text";
-import { useLandscapeCapable } from "@/hooks/use-landscape-capable";
-import { Colors, Fonts } from "@/constants/theme";
+import { Colors, Fonts, Layout } from "@/constants/theme";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { OrnateDivider } from "@/components/ornate-divider";
 import { useTheme } from "@/contexts/theme-context";
@@ -46,9 +45,6 @@ function ArenaCardSkeleton({ bottom, backgroundColor }: { bottom: number; backgr
 }
 
 export default function MapScreen() {
-  //Allows this page to go into landscape
-  useLandscapeCapable();
-
   const [region, setRegion] = useState<{
     latitude: number;
     longitude: number;
@@ -243,6 +239,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     right: 16,
+    // Stops the card spanning a whole landscape screen; centred via auto margins
+    // because left/right are already pinned for the portrait case.
+    maxWidth: Layout.contentMaxWidth,
+    marginHorizontal: "auto",
     borderWidth: 1.5,
     borderColor: Colors.accent,
     borderRadius: 16,

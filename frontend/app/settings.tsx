@@ -58,6 +58,9 @@ export default function Settings() {
 
       //Set display name to display name (? means if the data is null then don't try to read)
       if (data?.displayName) setDisplayName(data.displayName);
+
+      //Restores the saved picture so the circle keeps showing it between visits
+      if (data?.photoUrl) setPhotoUrl(data.photoUrl);
     })();
   }, [user]);
 

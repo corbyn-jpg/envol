@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -64,7 +64,7 @@ export default function Settings() {
   //Adds display name to the user document
   async function handleSaveDisplayName() {
     if (!user) return;
-    await updateDoc(doc(db, "users", user.uid), { displayName });
+    await setDoc(doc(db, "users", user.uid), { displayName }, { merge: true });
     setNameSaved(true);
   }
 
@@ -104,7 +104,11 @@ export default function Settings() {
       // A data URI works anywhere a normal image URL does
       const dataUri = `data:image/jpeg;base64,${image.base64}`;
 
-      await updateDoc(doc(db, "users", user.uid), { photoUrl: dataUri });
+      await setDoc(
+        doc(db, "users", user.uid),
+        { photoUrl: dataUri },
+        { merge: true },
+      );
       setPhotoUrl(dataUri);
     } catch (err) {
       setPhotoError(err instanceof Error ? err.message : "Upload failed");
@@ -346,26 +350,26 @@ const styles = StyleSheet.create({
     color: "#B00020",
   },
   avatarPicker: {
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 12,
-},
-avatar: {
-  width: 72,
-  height: 72,
-  borderRadius: 36,
-},
-avatarEmpty: {
-  borderWidth: 1,
-  borderColor: Colors.accent,
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "#fff",
-},
-avatarHint: {
-  fontSize: 13,
-  opacity: 0.7,
-},
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+  },
+  avatarEmpty: {
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  avatarHint: {
+    fontSize: 13,
+    opacity: 0.7,
+  },
   themeOption: {
     borderWidth: 1,
     borderColor: Colors.accent,

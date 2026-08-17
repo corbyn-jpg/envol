@@ -21,6 +21,12 @@ type RaceResult = {
   completedAt: Date;
 };
 
+type UserProfile = {
+  displayName: string | null;
+  photoUrl: string | null;
+  favouriteMedalId: string | null;
+};
+
 // Negative means `a` ranks above `b`. Primary: more species found wins.
 // Tiebreaker: if two people found the same number, the faster time wins.
 function compareResults(a: RaceResult, b: RaceResult) {
@@ -73,8 +79,7 @@ export default function LeaderboardScreen() {
   const arenaName = nearest?.arena.name ?? '';
 
   const [allResults, setAllResults] = useState<RaceResult[]>([]);
-  const [favouritesByUser, setFavouritesByUser] = useState<Record<string, string | null>>({});
-  const [loading, setLoading] = useState(true);
+const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>>({});  const [loading, setLoading] = useState(true);
   const [showThisWeek, setShowThisWeek] = useState(true);
 
   useFocusEffect(
@@ -99,18 +104,29 @@ export default function LeaderboardScreen() {
         setAllResults(results);
 
         // Look up each unique racer's chosen favourite medal, so it can render next to their name.
+                // One read per racer gives us their live name, photo and chosen medal.
         const uniqueUserIds = [...new Set(results.map((result) => result.userId))];
-        const favourites: Record<string, string | null> = {};
+        const profiles: Record<string, UserProfile> = {};
         for (const userId of uniqueUserIds) {
           const userSnapshot = await getDoc(doc(db, 'users', userId));
-          favourites[userId] = userSnapshot.data()?.favouriteMedalId ?? null;
+          const data = userSnapshot.data();
+          profiles[userId] = {
+            displayName: data?.displayName ?? null,
+            photoUrl: data?.photoUrl ?? null,
+            favouriteMedalId: data?.favouriteMedalId ?? null,
+          };
         }
-        setFavouritesByUser(favourites);
+        setProfilesByUser(profiles);
 
         setLoading(false);
       })();
     }, [arenaId])
   );
+
+    // The name stored on the race result is frozen at completion time, so prefer the user's current name and only fall back if their profile can't be read.
+  function displayNameFor(entry: RaceResult) {
+    return profilesByUser[entry.userId]?.displayName ?? entry.displayName;
+  }
 
   if (!arenaId) {
     return (
@@ -192,15 +208,24 @@ export default function LeaderboardScreen() {
                   {slot === 1 && (
                     <IconSymbol name="crown.fill" size={20} color={Colors.accent} />
                   )}
-                  <View style={[styles.avatar, slot === 1 && styles.avatarFirst]}>
-                    <ThemedText style={styles.avatarText}>
-                      {getInitials(entry.displayName)}
-                    </ThemedText>
-                  </View>
-                  <ThemedText style={styles.podiumName}>{entry.displayName}</ThemedText>
-                  {getMedal(favouritesByUser[entry.userId]) && (
+                                    {profilesByUser[entry.userId]?.photoUrl ? (
                     <Image
-                      source={getMedal(favouritesByUser[entry.userId])!.image}
+                      source={{ uri: profilesByUser[entry.userId].photoUrl! }}
+                      style={[styles.avatar, slot === 1 && styles.avatarFirst]}
+                    />
+                  ) : (
+                    <View style={[styles.avatar, slot === 1 && styles.avatarFirst]}>
+                      <ThemedText style={styles.avatarText}>
+                        {getInitials(displayNameFor(entry))}
+                      </ThemedText>
+                    </View>
+                  )}
+                  <ThemedText style={styles.podiumName}>
+                    {displayNameFor(entry)}
+                  </ThemedText>
+                  {getMedal(profilesByUser[entry.userId]?.favouriteMedalId) && (
+                    <Image
+                      source={getMedal(profilesByUser[entry.userId]?.favouriteMedalId)!.image}
                       style={styles.podiumMedal}
                     />
                   )}
@@ -220,15 +245,22 @@ export default function LeaderboardScreen() {
             style={[styles.row, entry.userId === user?.uid && styles.rowSelf]}
           >
             <ThemedText style={styles.rank}>{index + 4}</ThemedText>
-            <View style={styles.smallAvatar}>
-              <ThemedText style={styles.smallAvatarText}>
-                {getInitials(entry.displayName)}
-              </ThemedText>
-            </View>
-            <ThemedText style={styles.rowName}>{entry.displayName}</ThemedText>
-            {getMedal(favouritesByUser[entry.userId]) && (
+            {profilesByUser[entry.userId]?.photoUrl ? (
               <Image
-                source={getMedal(favouritesByUser[entry.userId])!.image}
+                source={{ uri: profilesByUser[entry.userId].photoUrl! }}
+                style={styles.smallAvatar}
+              />
+            ) : (
+              <View style={styles.smallAvatar}>
+                <ThemedText style={styles.smallAvatarText}>
+                  {getInitials(displayNameFor(entry))}
+                </ThemedText>
+              </View>
+            )}
+            <ThemedText style={styles.rowName}>{displayNameFor(entry)}</ThemedText>
+            {getMedal(profilesByUser[entry.userId]?.favouriteMedalId) && (
+              <Image
+                source={getMedal(profilesByUser[entry.userId]?.favouriteMedalId)!.image}
                 style={styles.rowMedal}
               />
             )}

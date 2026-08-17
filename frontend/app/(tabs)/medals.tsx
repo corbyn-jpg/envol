@@ -1,16 +1,33 @@
-import { useCallback, useState } from 'react';
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
-import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { useCallback, useState } from "react";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
 
-import { Banner } from '@/components/banner';
-import { ThemedText } from '@/components/themed-text';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useAuth } from '@/contexts/auth-context';
-import { db } from '@/lib/firebase';
-import { MEDALS, type MedalContext } from '@/lib/medals';
-import { Colors, Fonts } from '@/constants/theme';
+import { Banner } from "@/components/banner";
+import { ThemedText } from "@/components/themed-text";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useAuth } from "@/contexts/auth-context";
+import { db } from "@/lib/firebase";
+import { MEDALS, type MedalContext } from "@/lib/medals";
+import { Colors, Fonts } from "@/constants/theme";
 
 export default function MedalsScreen() {
   const { user } = useAuth();
@@ -28,12 +45,14 @@ export default function MedalsScreen() {
       (async () => {
         // Every arena this user has made progress in — gives us the foundAt timestamps and startedAt
         const progressSnapshot = await getDocs(
-          collection(db, 'users', user.uid, 'raceProgress')
+          collection(db, "users", user.uid, "raceProgress"),
         );
         const progressByArena = progressSnapshot.docs.map((progressDoc) => {
           const data = progressDoc.data();
           const foundAt: Record<string, Date> = {};
-          for (const [speciesId, timestamp] of Object.entries(data.foundAt ?? {})) {
+          for (const [speciesId, timestamp] of Object.entries(
+            data.foundAt ?? {},
+          )) {
             foundAt[speciesId] = (timestamp as any).toDate();
           }
           return {
@@ -45,7 +64,7 @@ export default function MedalsScreen() {
 
         // Every completed race
         const resultsSnapshot = await getDocs(
-          query(collection(db, 'raceResults'), where('userId', '==', user.uid))
+          query(collection(db, "raceResults"), where("userId", "==", user.uid)),
         );
         const raceResults = resultsSnapshot.docs.map((resultDoc) => {
           const data = resultDoc.data();
@@ -57,10 +76,12 @@ export default function MedalsScreen() {
         });
 
         // For each arena completed, check whether this user is the one who claimed firstCompletedBy on it.
-        const arenaIds = [...new Set(raceResults.map((result) => result.arenaId))];
+        const arenaIds = [
+          ...new Set(raceResults.map((result) => result.arenaId)),
+        ];
         const firstBloodArenaIds = new Set<string>();
         for (const arenaId of arenaIds) {
-          const arenaSnapshot = await getDoc(doc(db, 'arenas', arenaId));
+          const arenaSnapshot = await getDoc(doc(db, "arenas", arenaId));
           if (arenaSnapshot.data()?.firstCompletedBy === user.uid) {
             firstBloodArenaIds.add(arenaId);
           }
@@ -68,17 +89,21 @@ export default function MedalsScreen() {
 
         setContext({ raceResults, progressByArena, firstBloodArenaIds });
 
-        const userSnapshot = await getDoc(doc(db, 'users', user.uid));
+        const userSnapshot = await getDoc(doc(db, "users", user.uid));
         setFavouriteMedalId(userSnapshot.data()?.favouriteMedalId ?? null);
 
         setLoading(false);
       })();
-    }, [user])
+    }, [user]),
   );
 
   async function handleSetFavourite(medalId: string) {
     if (!user) return;
-    await updateDoc(doc(db, 'users', user.uid), { favouriteMedalId: medalId });
+    await setDoc(
+      doc(db, "users", user.uid),
+      { favouriteMedalId: medalId },
+      { merge: true },
+    );
     setFavouriteMedalId(medalId);
   }
 
@@ -102,7 +127,8 @@ export default function MedalsScreen() {
       >
         <ThemedText type="title">Medals</ThemedText>
         <ThemedText style={styles.hint}>
-          Tap an earned medal to set it as your favourite — it'll show next to your name on the leaderboard.
+          Tap an earned medal to set it as your favourite — it'll show next to
+          your name on the leaderboard.
         </ThemedText>
 
         <View style={styles.grid}>
@@ -121,11 +147,19 @@ export default function MedalsScreen() {
                 <ThemedText type="defaultSemiBold" style={styles.cardName}>
                   {medal.name}
                 </ThemedText>
-                <ThemedText style={styles.cardDescription}>{medal.description}</ThemedText>
+                <ThemedText style={styles.cardDescription}>
+                  {medal.description}
+                </ThemedText>
                 {isFavourite && (
                   <View style={styles.favouriteTag}>
-                    <IconSymbol name="star.fill" size={12} color={Colors.text} />
-                    <ThemedText style={styles.favouriteTagText}>Favourite</ThemedText>
+                    <IconSymbol
+                      name="star.fill"
+                      size={12}
+                      color={Colors.text}
+                    />
+                    <ThemedText style={styles.favouriteTagText}>
+                      Favourite
+                    </ThemedText>
                   </View>
                 )}
               </TouchableOpacity>
@@ -151,20 +185,20 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     marginTop: 8,
   },
   card: {
-    width: '47%',
+    width: "47%",
     borderWidth: 1,
     borderColor: Colors.accent,
     borderRadius: 12,
     padding: 12,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 4,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   cardLocked: {
     opacity: 0.35,
@@ -174,16 +208,16 @@ const styles = StyleSheet.create({
     height: 64,
   },
   cardName: {
-    textAlign: 'center',
+    textAlign: "center",
   },
   cardDescription: {
     fontSize: 11,
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.7,
   },
   favouriteTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     marginTop: 4,
   },

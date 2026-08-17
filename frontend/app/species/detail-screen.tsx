@@ -1,13 +1,27 @@
 import { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc, setDoc, arrayUnion, serverTimestamp } from "firebase/firestore";
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  arrayUnion,
+  serverTimestamp,
+} from "firebase/firestore";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Banner } from "@/components/banner";
 import { ThemedText } from "@/components/themed-text";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
 import { Colors, Fonts } from "@/constants/theme";
+import * as ImagePicker from "expo-image-picker";
+import { parseExifDate, wasTakenToday } from "@/lib/photo-verification";
 
 type SpeciesDetails = {
   commonName: string;
@@ -24,6 +38,8 @@ export default function SpeciesDetailScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [species, setSpecies] = useState<SpeciesDetails | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!arenaId || !speciesId) return;
@@ -44,6 +60,50 @@ export default function SpeciesDetailScreen() {
     })();
   }, [arenaId, speciesId]);
 
+  //Requires a photo taken today before the bird can be logged as found
+  async function handleVerifyAndFind() {
+    setVerifyError(null);
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setVerifyError("Photo library access is needed to verify your sighting.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      // Cropping re-encodes the file and destroys the metadata we're checking.
+      allowsEditing: false,
+      quality: 1,
+      exif: true,
+    });
+
+    if (result.canceled) return;
+
+    setVerifying(true);
+    try {
+      const takenAt = parseExifDate(result.assets[0].exif);
+
+      if (!takenAt) {
+        setVerifyError(
+          "That image has no capture date, so it can't be verified. Photograph the bird with your camera.",
+        );
+        return;
+      }
+
+      if (!wasTakenToday(takenAt)) {
+        setVerifyError(
+          "That photo wasn't taken today. Find the bird and photograph it now.",
+        );
+        return;
+      }
+
+      await handleFound();
+    } finally {
+      setVerifying(false);
+    }
+  }
+
   async function handleFound() {
     if (!user || !arenaId || !speciesId) return;
 
@@ -57,7 +117,9 @@ export default function SpeciesDetailScreen() {
         foundSpeciesIds: arrayUnion(speciesId),
         //Returns a sentinel to include a server-generated timestamp in the written data.
         foundAt: { [speciesId]: serverTimestamp() },
-        ...(progressSnapshot.data()?.startedAt ? {} : { startedAt: serverTimestamp() }),
+        ...(progressSnapshot.data()?.startedAt
+          ? {}
+          : { startedAt: serverTimestamp() }),
       },
       { merge: true },
     );
@@ -68,20 +130,30 @@ export default function SpeciesDetailScreen() {
   if (!species) return null;
 
   return (
-  <SafeAreaView style={styles.container}>
-    <Banner showBack />
-    <ScrollView contentContainerStyle={styles.content}>
-      <Image source={{ uri: species.imageUrl }} style={styles.fullImage} />
-      <ThemedText type="title">{species.commonName}</ThemedText>
-      <ThemedText type="scientific">{species.scientificName}</ThemedText>
-      <ThemedText style={styles.funFact}>{species.funFact}</ThemedText>
-    </ScrollView>
+    <SafeAreaView style={styles.container}>
+      <Banner showBack />
+      <ScrollView contentContainerStyle={styles.content}>
+        <Image source={{ uri: species.imageUrl }} style={styles.fullImage} />
+        <ThemedText type="title">{species.commonName}</ThemedText>
+        <ThemedText type="scientific">{species.scientificName}</ThemedText>
+        <ThemedText style={styles.funFact}>{species.funFact}</ThemedText>
+      </ScrollView>
 
-    <TouchableOpacity style={styles.foundButton} onPress={handleFound}>
-      <ThemedText style={styles.foundButtonText}>I Found This!</ThemedText>
-    </TouchableOpacity>
-  </SafeAreaView>
-);
+      <TouchableOpacity
+        style={styles.foundButton}
+        onPress={handleVerifyAndFind}
+        disabled={verifying}
+      >
+        <ThemedText style={styles.foundButtonText}>
+          {verifying ? "Verifying..." : "I Found This!"}
+        </ThemedText>
+      </TouchableOpacity>
+
+      {verifyError && (
+        <ThemedText style={styles.verifyError}>{verifyError}</ThemedText>
+      )}
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -111,5 +183,11 @@ const styles = StyleSheet.create({
   foundButtonText: {
     color: Colors.background,
     fontFamily: Fonts.bodySemiBold,
+  },
+  verifyError: {
+    color: "#B00020",
+    textAlign: "center",
+    marginHorizontal: 24,
+    marginBottom: 12,
   },
 });

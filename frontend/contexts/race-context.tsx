@@ -3,7 +3,10 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 type RaceContextValue = {
   arenaId: string | null;
   totalElapsedSeconds: number;
+  isPaused: boolean;
   startRace: (arenaId: string, accumulatedSeconds: number) => void;
+  pauseRace: () => void;
+  resumeRace: () => void;
   stopRace: () => void;
 };
 
@@ -21,6 +24,19 @@ export function RaceProvider({ children }: { children: ReactNode }) {
     setAccumulatedSeconds(startingAccumulatedSeconds);
     setSessionStartTime(Date.now());
     setSessionElapsedSeconds(0);
+  }
+
+  //Banks the time run so far, then clears the start time so the ticker stops
+  function pauseRace() {
+    setAccumulatedSeconds(accumulatedSeconds + sessionElapsedSeconds);
+    setSessionElapsedSeconds(0);
+    setSessionStartTime(null);
+  }
+
+  //Starts a fresh session on top of the banked time
+  function resumeRace() {
+    setSessionElapsedSeconds(0);
+    setSessionStartTime(Date.now());
   }
 
   function stopRace() {
@@ -41,8 +57,21 @@ export function RaceProvider({ children }: { children: ReactNode }) {
 
   const totalElapsedSeconds = accumulatedSeconds + sessionElapsedSeconds;
 
+  //A race is in progress but the ticker isn't running — no extra state needed
+  const isPaused = arenaId !== null && sessionStartTime === null;
+
   return (
-    <RaceContext.Provider value={{ arenaId, totalElapsedSeconds, startRace, stopRace }}>
+    <RaceContext.Provider
+      value={{
+        arenaId,
+        totalElapsedSeconds,
+        isPaused,
+        startRace,
+        pauseRace,
+        resumeRace,
+        stopRace,
+      }}
+    >
       {children}
     </RaceContext.Provider>
   );

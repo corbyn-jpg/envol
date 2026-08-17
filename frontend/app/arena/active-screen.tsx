@@ -90,6 +90,19 @@ export default function ActiveRaceScreen() {
   const isFullyComplete =
     allSpecies.length > 0 && foundSpeciesIds.length === allSpecies.length;
 
+  // Banked time is saved straight away, so pausing and closing the app doesn't
+  // lose the seconds already run.
+  async function handlePause() {
+    race.pauseRace();
+
+    if (!user || !id) return;
+    await setDoc(
+      doc(db, "users", user.uid, "raceProgress", id),
+      { accumulatedSeconds: race.totalElapsedSeconds },
+      { merge: true },
+    );
+  }
+
   async function handleFinish() {
     if (!user || !id) return;
 
@@ -202,12 +215,48 @@ export default function ActiveRaceScreen() {
     );
   }
 
+  // The bird list is deliberately hidden while paused — otherwise stopping the
+  // clock would just be a way to hunt for free.
+  if (race.isPaused && race.arenaId === id) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Banner showBack />
+        <View style={styles.center}>
+          <ThemedText type="display" style={styles.timer}>
+            {minutes}:{seconds}
+          </ThemedText>
+          <ThemedText type="title">Paused</ThemedText>
+          <ThemedText style={styles.completeMessage}>
+            Your time is stopped. The bird list stays hidden until you resume.
+          </ThemedText>
+
+          <TouchableOpacity
+            style={[
+              styles.completeButton,
+              styles.completeButtonPrimary,
+              styles.resumeButton,
+            ]}
+            onPress={race.resumeRace}
+          >
+            <ThemedText style={styles.completeButtonPrimaryText}>
+              Resume Race
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Banner showBack />
       <ThemedText type="display" style={styles.timer}>
         {minutes}:{seconds}
       </ThemedText>
+
+      <TouchableOpacity style={styles.pauseButton} onPress={handlePause}>
+        <ThemedText style={styles.pauseButtonText}>Pause</ThemedText>
+      </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.list}>
         {allSpecies.map((species) => {
@@ -313,6 +362,21 @@ const styles = StyleSheet.create({
   timer: {
     textAlign: "center",
     marginVertical: 16,
+  },
+  pauseButton: {
+    alignSelf: "center",
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    borderRadius: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 6,
+    marginBottom: 16,
+  },
+  pauseButtonText: {
+    fontSize: 13,
+  },
+  resumeButton: {
+    marginTop: 24,
   },
   list: {
     paddingHorizontal: 24,

@@ -186,7 +186,9 @@ export default function LeaderboardScreen() {
       <SafeAreaView style={styles.container}>
         <Banner />
         <View style={styles.emptyState}>
-          <ThemedText type="subtitle">No Arena Nearby</ThemedText>
+          <ThemedText type="subtitle" style={styles.emptyTitle}>
+            No Arena Nearby
+          </ThemedText>
           <ThemedText style={styles.emptyText}>
             Get closer to an arena to see its leaderboard here.
           </ThemedText>
@@ -374,6 +376,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     padding: 24,
+  },
+  // Stretching to the container's full width stops the heading being sized to
+  // its own measured width, which was clipping the last word.
+  emptyTitle: {
+    alignSelf: "stretch",
+    textAlign: "center",
   },
   emptyText: {
     textAlign: "center",

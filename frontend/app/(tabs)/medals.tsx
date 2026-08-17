@@ -28,6 +28,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { db } from "@/lib/firebase";
 import { MEDALS, type MedalContext } from "@/lib/medals";
 import { Colors, Fonts } from "@/constants/theme";
+import { Skeleton } from '@/components/skeleton';
 
 export default function MedalsScreen() {
   const { user } = useAuth();
@@ -107,10 +108,23 @@ export default function MedalsScreen() {
     setFavouriteMedalId(medalId);
   }
 
-  if (loading || !context) {
+    if (loading || !context) {
     return (
       <SafeAreaView style={styles.container}>
         <Banner />
+        <View style={styles.content}>
+          <Skeleton width={160} height={28} />
+          <Skeleton width="80%" height={12} />
+          <View style={styles.grid}>
+            {MEDALS.map((medal) => (
+              <View key={medal.id} style={styles.card}>
+                <Skeleton width={64} height={64} borderRadius={32} />
+                <Skeleton width="70%" height={14} />
+                <Skeleton width="90%" height={11} />
+              </View>
+            ))}
+          </View>
+        </View>
       </SafeAreaView>
     );
   }

@@ -13,6 +13,8 @@ import { useRace } from '@/contexts/race-context';
 import { useNearbyArena } from '@/hooks/use-nearby-arena';
 import { db } from '@/lib/firebase';
 import { Colors, Fonts } from '@/constants/theme';
+import { Skeleton, SkeletonRow } from '@/components/skeleton';
+
 
 type Species = {
   id: string;
@@ -23,7 +25,7 @@ type Species = {
 
 export default function LedgerScreen() {
   const { user } = useAuth();
-  const { nearest, isActive } = useNearbyArena();
+    const { nearest, isActive, loading: arenaLoading } = useNearbyArena();
   const race = useRace();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -59,6 +61,23 @@ export default function LedgerScreen() {
     }, [arenaId, user])
   );
 
+    if (arenaLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Banner />
+        <View style={styles.content}>
+          <Skeleton width={120} height={11} />
+          <Skeleton width={180} height={28} />
+          <Skeleton height={8} borderRadius={4} />
+          <Skeleton width={140} height={11} />
+          {[0, 1, 2, 3, 4].map((index) => (
+            <SkeletonRow key={index} />
+          ))}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (!arenaId) {
     return (
       <SafeAreaView style={styles.container}>
@@ -76,10 +95,19 @@ export default function LedgerScreen() {
     );
   }
 
-  if (loading) {
+    if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <Banner />
+        <View style={styles.content}>
+          <Skeleton width={120} height={11} />
+          <Skeleton width={180} height={28} />
+          <Skeleton height={8} borderRadius={4} />
+          <Skeleton width={140} height={11} />
+          {[0, 1, 2, 3, 4].map((index) => (
+            <SkeletonRow key={index} />
+          ))}
+        </View>
       </SafeAreaView>
     );
   }

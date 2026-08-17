@@ -25,6 +25,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
 import { useRace } from "@/contexts/race-context";
 import { Colors } from "@/constants/theme";
+import { Skeleton, SkeletonRow } from '@/components/skeleton';
 
 type Species = {
   id: string;
@@ -152,10 +153,18 @@ export default function ActiveRaceScreen() {
   );
   const seconds = String(race.totalElapsedSeconds % 60).padStart(2, "0");
 
-  if (loading) {
+    if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator />
+      <SafeAreaView style={styles.container}>
+        <Banner showBack />
+        <View style={styles.timer}>
+          <Skeleton width={160} height={48} style={{ alignSelf: "center" }} />
+        </View>
+        <View style={styles.list}>
+          {[0, 1, 2, 3, 4].map((index) => (
+            <SkeletonRow key={index} />
+          ))}
+        </View>
       </SafeAreaView>
     );
   }

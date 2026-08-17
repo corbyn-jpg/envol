@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -23,6 +22,7 @@ import { OrnateDivider } from "@/components/ornate-divider";
 import { useTheme } from "@/contexts/theme-context";
 import { MiniTimer } from "@/components/mini-timer";
 import { Banner } from "@/components/banner";
+import { Skeleton } from "@/components/skeleton";
 
 type Arena = {
   id: string;
@@ -33,6 +33,17 @@ type Arena = {
   latitude: number;
   longitude: number;
 };
+
+function ArenaCardSkeleton({ bottom, backgroundColor }: { bottom: number; backgroundColor: string }) {
+  return (
+    <View style={[styles.card, { bottom, backgroundColor }]}>
+      <Skeleton width={140} height={12} />
+      <Skeleton width={180} height={22} />
+      <Skeleton width="90%" height={14} />
+      <Skeleton height={40} style={{ marginTop: 8 }} />
+    </View>
+  );
+}
 
 export default function MapScreen() {
   //Allows this page to go into landscape
@@ -126,10 +137,17 @@ export default function MapScreen() {
     );
   }
 
-  if (!region) {
+    if (!region) {
     return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator color={primary} />
+      <SafeAreaView style={styles.container}>
+        <Banner />
+        <View style={styles.mapContainer}>
+          <Skeleton width="100%" height="100%" borderRadius={0} />
+        </View>
+        <ArenaCardSkeleton
+          bottom={insets.bottom + 12 + 64 + 12}
+          backgroundColor={primary}
+        />
       </SafeAreaView>
     );
   }
@@ -158,15 +176,13 @@ export default function MapScreen() {
           <MiniTimer />
         </View>
       </View>
+
       {/* Creates an arena around our markers */}
-      {nearest && (
+      {nearest ? (
         <View
           style={[
             styles.card,
-            {
-              bottom: insets.bottom + 12 + 64 + 12,
-              backgroundColor: primary,
-            },
+            { bottom: insets.bottom + 12 + 64 + 12, backgroundColor: primary },
           ]}
         >
           <ThemedText style={styles.cardLabel}>
@@ -200,6 +216,11 @@ export default function MapScreen() {
             </ThemedText>
           </TouchableOpacity>
         </View>
+      ) : (
+        <ArenaCardSkeleton
+          bottom={insets.bottom + 12 + 64 + 12}
+          backgroundColor={primary}
+        />
       )}
     </SafeAreaView>
   );

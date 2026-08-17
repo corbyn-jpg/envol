@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import * as Location from 'expo-location';
-import { collection, getDocs } from 'firebase/firestore';
+import { useEffect, useMemo, useState } from "react";
+import * as Location from "expo-location";
+import { collection, getDocs } from "firebase/firestore";
 
-import { db } from '@/lib/firebase';
-import { getDistanceMeters } from '@/lib/distance';
+import { db } from "@/lib/firebase";
+import { getDistanceMeters } from "@/lib/distance";
 
 type Arena = {
   id: string;
@@ -16,29 +16,39 @@ type Arena = {
 };
 
 export function useNearbyArena() {
-  const [region, setRegion] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [region, setRegion] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const [arenas, setArenas] = useState<Arena[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [locationDone, setLocationDone] = useState(false);
+  const [arenasDone, setArenasDone] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Location permission is required to find nearby arenas');
-        return;
-      }
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          setErrorMsg("Location permission is required to find nearby arenas");
+          return;
+        }
 
-      const position = await Location.getCurrentPositionAsync({});
-      setRegion({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      });
+        const position = await Location.getCurrentPositionAsync({});
+        setRegion({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      } finally {
+        // Runs even when permission is denied or the lookup throws
+        setLocationDone(true);
+      }
     })();
   }, []);
 
   useEffect(() => {
     (async () => {
-      const snapshot = await getDocs(collection(db, 'arenas'));
+      const snapshot = await getDocs(collection(db, "arenas"));
       setArenas(
         snapshot.docs.map((doc) => {
           const data = doc.data();
@@ -51,8 +61,9 @@ export function useNearbyArena() {
             latitude: data.location.latitude,
             longitude: data.location.longitude,
           };
-        })
+        }),
       );
+      setArenasDone(true);
     })();
   }, []);
 
@@ -66,13 +77,16 @@ export function useNearbyArena() {
           region.latitude,
           region.longitude,
           arena.latitude,
-          arena.longitude
+          arena.longitude,
         ),
       }))
       .sort((a, b) => a.distanceMeters - b.distanceMeters)[0];
   }, [region, arenas]);
 
-  const isActive = nearest ? nearest.distanceMeters <= nearest.arena.radiusMeters : false;
+  const isActive = nearest
+    ? nearest.distanceMeters <= nearest.arena.radiusMeters
+    : false;
+  const loading = !locationDone || !arenasDone;
 
-  return { region, arenas, nearest, isActive, errorMsg };
+  return { region, arenas, nearest, isActive, errorMsg, loading };
 }

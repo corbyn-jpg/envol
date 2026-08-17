@@ -1,17 +1,34 @@
-import { useCallback, useState } from 'react';
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { useCallback, useState } from "react";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { useFocusEffect, useRouter } from "expo-router";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
-import { Banner } from '@/components/banner';
-import { ThemedText } from '@/components/themed-text';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useAuth } from '@/contexts/auth-context';
-import { useNearbyArena } from '@/hooks/use-nearby-arena';
-import { db } from '@/lib/firebase';
-import { getMedal } from '@/lib/medals';
-import { Colors, Fonts } from '@/constants/theme';
+import { Banner } from "@/components/banner";
+import { ThemedText } from "@/components/themed-text";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useAuth } from "@/contexts/auth-context";
+import { useNearbyArena } from "@/hooks/use-nearby-arena";
+import { db } from "@/lib/firebase";
+import { getMedal } from "@/lib/medals";
+import { Colors, Fonts } from "@/constants/theme";
+import { Skeleton, SkeletonRow } from "@/components/skeleton";
 
 type RaceResult = {
   userId: string;
@@ -60,7 +77,7 @@ function getStartOfWeek(): Date {
 function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 function getInitials(name: string) {
@@ -71,15 +88,18 @@ function getInitials(name: string) {
 
 export default function LeaderboardScreen() {
   const { user } = useAuth();
-  const { nearest, isActive } = useNearbyArena();
+  const { nearest, isActive, loading: arenaLoading } = useNearbyArena();
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
   const arenaId = isActive ? (nearest?.arena.id ?? null) : null;
-  const arenaName = nearest?.arena.name ?? '';
+  const arenaName = nearest?.arena.name ?? "";
 
   const [allResults, setAllResults] = useState<RaceResult[]>([]);
-const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>>({});  const [loading, setLoading] = useState(true);
+  const [profilesByUser, setProfilesByUser] = useState<
+    Record<string, UserProfile>
+  >({});
+  const [loading, setLoading] = useState(true);
   const [showThisWeek, setShowThisWeek] = useState(true);
 
   useFocusEffect(
@@ -89,7 +109,7 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
       setLoading(true);
       (async () => {
         const snapshot = await getDocs(
-          query(collection(db, 'raceResults'), where('arenaId', '==', arenaId))
+          query(collection(db, "raceResults"), where("arenaId", "==", arenaId)),
         );
         const results = snapshot.docs.map((doc) => {
           const data = doc.data();
@@ -104,11 +124,13 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
         setAllResults(results);
 
         // Look up each unique racer's chosen favourite medal, so it can render next to their name.
-                // One read per racer gives us their live name, photo and chosen medal.
-        const uniqueUserIds = [...new Set(results.map((result) => result.userId))];
+        // One read per racer gives us their live name, photo and chosen medal.
+        const uniqueUserIds = [
+          ...new Set(results.map((result) => result.userId)),
+        ];
         const profiles: Record<string, UserProfile> = {};
         for (const userId of uniqueUserIds) {
-          const userSnapshot = await getDoc(doc(db, 'users', userId));
+          const userSnapshot = await getDoc(doc(db, "users", userId));
           const data = userSnapshot.data();
           profiles[userId] = {
             displayName: data?.displayName ?? null,
@@ -120,13 +142,44 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
 
         setLoading(false);
       })();
-    }, [arenaId])
+    }, [arenaId]),
   );
 
-    // The name stored on the race result is frozen at completion time, so prefer the user's current name and only fall back if their profile can't be read.
+  function LeaderboardSkeleton() {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Banner />
+        <View style={styles.content}>
+          <Skeleton width={140} height={11} />
+          <Skeleton width={200} height={28} />
+          <Skeleton height={40} />
+          <View style={styles.podiumRow}>
+            {[0, 1, 2].map((slot) => (
+              <View key={slot} style={styles.podiumSlot}>
+                <Skeleton
+                  width={slot === 1 ? 72 : 56}
+                  height={slot === 1 ? 72 : 56}
+                  borderRadius={36}
+                />
+                <Skeleton width={60} height={12} />
+                <Skeleton width={30} height={12} />
+              </View>
+            ))}
+          </View>
+          {[0, 1, 2].map((index) => (
+            <SkeletonRow key={index} />
+          ))}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // The name stored on the race result is frozen at completion time, so prefer the user's current name and only fall back if their profile can't be read.
   function displayNameFor(entry: RaceResult) {
     return profilesByUser[entry.userId]?.displayName ?? entry.displayName;
   }
+
+  if (arenaLoading) return <LeaderboardSkeleton />;
 
   if (!arenaId) {
     return (
@@ -137,7 +190,10 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
           <ThemedText style={styles.emptyText}>
             Get closer to an arena to see its leaderboard here.
           </ThemedText>
-          <TouchableOpacity style={styles.mapButton} onPress={() => router.push('/(tabs)')}>
+          <TouchableOpacity
+            style={styles.mapButton}
+            onPress={() => router.push("/(tabs)")}
+          >
             <ThemedText style={styles.mapButtonText}>Go to Map</ThemedText>
           </TouchableOpacity>
         </View>
@@ -145,13 +201,7 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
     );
   }
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Banner />
-      </SafeAreaView>
-    );
-  }
+  if (loading) return <LeaderboardSkeleton />;
 
   const filteredResults = showThisWeek
     ? allResults.filter((result) => result.completedAt >= getStartOfWeek())
@@ -171,12 +221,17 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
           { paddingBottom: insets.bottom + 12 + 64 + 12 },
         ]}
       >
-        <ThemedText style={styles.eyebrow}>{arenaName.toUpperCase()} · LIVE</ThemedText>
+        <ThemedText style={styles.eyebrow}>
+          {arenaName.toUpperCase()} · LIVE
+        </ThemedText>
         <ThemedText type="title">Leaderboard</ThemedText>
 
         <View style={styles.toggleRow}>
           <TouchableOpacity
-            style={[styles.toggleButton, showThisWeek && styles.toggleButtonActive]}
+            style={[
+              styles.toggleButton,
+              showThisWeek && styles.toggleButtonActive,
+            ]}
             onPress={() => setShowThisWeek(true)}
           >
             <ThemedText
@@ -187,12 +242,17 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
             </ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.toggleButton, !showThisWeek && styles.toggleButtonActive]}
+            style={[
+              styles.toggleButton,
+              !showThisWeek && styles.toggleButtonActive,
+            ]}
             onPress={() => setShowThisWeek(false)}
           >
             <ThemedText
               numberOfLines={1}
-              style={!showThisWeek ? styles.toggleTextActive : styles.toggleText}
+              style={
+                !showThisWeek ? styles.toggleTextActive : styles.toggleText
+              }
             >
               All Time
             </ThemedText>
@@ -209,18 +269,27 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
               entry ? (
                 <View
                   key={entry.userId}
-                  style={[styles.podiumSlot, slot === 1 && styles.podiumSlotFirst]}
+                  style={[
+                    styles.podiumSlot,
+                    slot === 1 && styles.podiumSlotFirst,
+                  ]}
                 >
                   {slot === 1 && (
-                    <IconSymbol name="crown.fill" size={20} color={Colors.accent} />
+                    <IconSymbol
+                      name="crown.fill"
+                      size={20}
+                      color={Colors.accent}
+                    />
                   )}
-                                    {profilesByUser[entry.userId]?.photoUrl ? (
+                  {profilesByUser[entry.userId]?.photoUrl ? (
                     <Image
                       source={{ uri: profilesByUser[entry.userId].photoUrl! }}
                       style={[styles.avatar, slot === 1 && styles.avatarFirst]}
                     />
                   ) : (
-                    <View style={[styles.avatar, slot === 1 && styles.avatarFirst]}>
+                    <View
+                      style={[styles.avatar, slot === 1 && styles.avatarFirst]}
+                    >
                       <ThemedText style={styles.avatarText}>
                         {getInitials(displayNameFor(entry))}
                       </ThemedText>
@@ -231,16 +300,24 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
                   </ThemedText>
                   {getMedal(profilesByUser[entry.userId]?.favouriteMedalId) && (
                     <Image
-                      source={getMedal(profilesByUser[entry.userId]?.favouriteMedalId)!.image}
+                      source={
+                        getMedal(
+                          profilesByUser[entry.userId]?.favouriteMedalId,
+                        )!.image
+                      }
                       style={styles.podiumMedal}
                     />
                   )}
-                  <ThemedText type="defaultSemiBold">{entry.speciesFound}</ThemedText>
-                  <ThemedText style={styles.podiumTime}>{formatTime(entry.totalSeconds)}</ThemedText>
+                  <ThemedText type="defaultSemiBold">
+                    {entry.speciesFound}
+                  </ThemedText>
+                  <ThemedText style={styles.podiumTime}>
+                    {formatTime(entry.totalSeconds)}
+                  </ThemedText>
                 </View>
               ) : (
                 <View key={`empty-${slot}`} style={styles.podiumSlot} />
-              )
+              ),
             )}
           </View>
         )}
@@ -263,14 +340,21 @@ const [profilesByUser, setProfilesByUser] = useState<Record<string, UserProfile>
                 </ThemedText>
               </View>
             )}
-            <ThemedText style={styles.rowName}>{displayNameFor(entry)}</ThemedText>
+            <ThemedText style={styles.rowName}>
+              {displayNameFor(entry)}
+            </ThemedText>
             {getMedal(profilesByUser[entry.userId]?.favouriteMedalId) && (
               <Image
-                source={getMedal(profilesByUser[entry.userId]?.favouriteMedalId)!.image}
+                source={
+                  getMedal(profilesByUser[entry.userId]?.favouriteMedalId)!
+                    .image
+                }
                 style={styles.rowMedal}
               />
             )}
-            <ThemedText style={styles.rowTime}>{formatTime(entry.totalSeconds)}</ThemedText>
+            <ThemedText style={styles.rowTime}>
+              {formatTime(entry.totalSeconds)}
+            </ThemedText>
             <ThemedText type="defaultSemiBold">{entry.speciesFound}</ThemedText>
           </View>
         ))}
@@ -286,13 +370,13 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     gap: 8,
     padding: 24,
   },
   emptyText: {
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.7,
   },
   mapButton: {
@@ -316,16 +400,16 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   toggleRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     borderWidth: 1,
     borderColor: Colors.accent,
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   toggleButton: {
     flex: 1,
     paddingVertical: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   toggleButtonActive: {
     backgroundColor: Colors.accent,
@@ -339,14 +423,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodySemiBold,
   },
   podiumRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "flex-end",
     gap: 16,
     marginTop: 8,
   },
   podiumSlot: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 4,
     width: 88,
   },
@@ -358,8 +442,8 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     backgroundColor: Colors.text,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarFirst: {
     width: 72,
@@ -373,7 +457,7 @@ const styles = StyleSheet.create({
   },
   podiumName: {
     fontSize: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   podiumTime: {
     fontSize: 11,
@@ -384,14 +468,14 @@ const styles = StyleSheet.create({
     height: 20,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     borderWidth: 1,
     borderColor: Colors.accent,
     borderRadius: 12,
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   rowSelf: {
     borderColor: Colors.text,
@@ -399,7 +483,7 @@ const styles = StyleSheet.create({
   },
   rank: {
     width: 20,
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.7,
   },
   smallAvatar: {
@@ -407,8 +491,8 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: Colors.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   smallAvatarText: {
     fontSize: 11,

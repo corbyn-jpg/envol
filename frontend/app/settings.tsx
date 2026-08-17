@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,7 +16,9 @@ import {
   reauthenticateWithCredential,
   updatePassword,
 } from "firebase/auth";
-
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ThemedText } from "@/components/themed-text";
 import { useAuth } from "@/contexts/auth-context";
 import { useTheme } from "@/contexts/theme-context";
@@ -41,6 +44,9 @@ export default function Settings() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSaved, setPasswordSaved] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -60,6 +66,51 @@ export default function Settings() {
     if (!user) return;
     await updateDoc(doc(db, "users", user.uid), { displayName });
     setNameSaved(true);
+  }
+
+  //Lets the user pick an image, shrinks it, and stores it on their user document
+  async function handlePickPhoto() {
+    if (!user) return;
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setPhotoError("Photo library access is needed to choose a picture.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (result.canceled) return;
+
+    setUploading(true);
+    setPhotoError(null);
+
+    try {
+      // Firestore documents cap at 1MB
+      const context = ImageManipulator.manipulate(result.assets[0].uri);
+      context.resize({ width: 256, height: 256 });
+      const rendered = await context.renderAsync();
+      const image = await rendered.saveAsync({
+        format: SaveFormat.JPEG,
+        compress: 0.6,
+        base64: true,
+      });
+
+      // A data URI works anywhere a normal image URL does
+      const dataUri = `data:image/jpeg;base64,${image.base64}`;
+
+      await updateDoc(doc(db, "users", user.uid), { photoUrl: dataUri });
+      setPhotoUrl(dataUri);
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
   }
 
   //Handles password change
@@ -107,102 +158,143 @@ export default function Settings() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-        {/* Display name */}
-        <View style={styles.section}>
-          <ThemedText type="subtitle">Display Name</ThemedText>
-          <ThemedText style={styles.hint}>Shown on the leaderboard</ThemedText>
-          <TextInput
-            style={styles.input}
-            value={displayName}
-            onChangeText={(text) => {
-              setDisplayName(text);
-              setNameSaved(false);
-            }}
-            placeholder="Your name"
-          />
-          <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: primary }]}
-            onPress={handleSaveDisplayName}
-          >
-            <ThemedText style={styles.saveButtonText}>Save Name</ThemedText>
-          </TouchableOpacity>
-          {nameSaved && (
-            <ThemedText style={[styles.savedText, { color: primary }]}>
-              Saved!
+          {/* Display name */}
+          <View style={styles.section}>
+            <ThemedText type="subtitle">Display Name</ThemedText>
+            <ThemedText style={styles.hint}>
+              Shown on the leaderboard
             </ThemedText>
-          )}
-        </View>
-
-        {/* Change the theme */}
-        <View style={styles.section}>
-          <ThemedText type="subtitle">Theme</ThemedText>
-          {themeOptions.map((option) => (
+            <TextInput
+              style={styles.input}
+              value={displayName}
+              onChangeText={(text) => {
+                setDisplayName(text);
+                setNameSaved(false);
+              }}
+              placeholder="Your name"
+            />
             <TouchableOpacity
-              key={option.value}
-              style={[
-                styles.themeOption,
-                themePreference === option.value && {
-                  backgroundColor: primary,
-                  borderColor: primary,
-                  
-                },
-              ]}
-              onPress={() => setThemePreference(option.value)}
+              style={[styles.saveButton, { backgroundColor: primary }]}
+              onPress={handleSaveDisplayName}
             >
-              <ThemedText
-                style={themePreference === option.value && styles.themeOptionTextActive}
-              >
-                {option.label}
+              <ThemedText style={styles.saveButtonText}>Save Name</ThemedText>
+            </TouchableOpacity>
+            {nameSaved && (
+              <ThemedText style={[styles.savedText, { color: primary }]}>
+                Saved!
+              </ThemedText>
+            )}
+          </View>
+
+          {/*Profile Picture*/}
+          <View style={styles.section}>
+            <ThemedText type="subtitle">Profile Picture</ThemedText>
+            <ThemedText style={styles.hint}>
+              Shown on the leaderboard
+            </ThemedText>
+
+            <TouchableOpacity
+              style={styles.avatarPicker}
+              onPress={handlePickPhoto}
+              disabled={uploading}
+            >
+              {photoUrl ? (
+                <Image source={{ uri: photoUrl }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarEmpty]}>
+                  <IconSymbol
+                    name="person.fill"
+                    size={32}
+                    color={Colors.text}
+                  />
+                </View>
+              )}
+              <ThemedText style={styles.avatarHint}>
+                {uploading
+                  ? "Uploading..."
+                  : photoUrl
+                    ? "Change Photo"
+                    : "Add Photo"}
               </ThemedText>
             </TouchableOpacity>
-          ))}
-        </View>
 
-        {/* Change password */}
-        <View style={styles.section}>
-          <ThemedText type="subtitle">Change Password</ThemedText>
-          <TextInput
-            style={styles.input}
-            placeholder="Current password"
-            secureTextEntry
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="New password"
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm new password"
-            secureTextEntry
-            value={confirmNewPassword}
-            onChangeText={setConfirmNewPassword}
-          />
-          {passwordError && (
-            <ThemedText style={styles.errorText}>{passwordError}</ThemedText>
-          )}
-          {passwordSaved && (
-            <ThemedText style={[styles.savedText, { color: primary }]}>
-              Password updated!
-            </ThemedText>
-          )}
-          <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: primary }]}
-            onPress={handlePasswordChange}
-          >
-            <ThemedText style={styles.saveButtonText}>
-              Update Password
-            </ThemedText>
+            {photoError && (
+              <ThemedText style={styles.errorText}>{photoError}</ThemedText>
+            )}
+          </View>
+
+          {/* Change the theme */}
+          <View style={styles.section}>
+            <ThemedText type="subtitle">Theme</ThemedText>
+            {themeOptions.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.themeOption,
+                  themePreference === option.value && {
+                    backgroundColor: primary,
+                    borderColor: primary,
+                  },
+                ]}
+                onPress={() => setThemePreference(option.value)}
+              >
+                <ThemedText
+                  style={
+                    themePreference === option.value &&
+                    styles.themeOptionTextActive
+                  }
+                >
+                  {option.label}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Change password */}
+          <View style={styles.section}>
+            <ThemedText type="subtitle">Change Password</ThemedText>
+            <TextInput
+              style={styles.input}
+              placeholder="Current password"
+              secureTextEntry
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="New password"
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm new password"
+              secureTextEntry
+              value={confirmNewPassword}
+              onChangeText={setConfirmNewPassword}
+            />
+            {passwordError && (
+              <ThemedText style={styles.errorText}>{passwordError}</ThemedText>
+            )}
+            {passwordSaved && (
+              <ThemedText style={[styles.savedText, { color: primary }]}>
+                Password updated!
+              </ThemedText>
+            )}
+            <TouchableOpacity
+              style={[styles.saveButton, { backgroundColor: primary }]}
+              onPress={handlePasswordChange}
+            >
+              <ThemedText style={styles.saveButtonText}>
+                Update Password
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.logOutButton} onPress={logOut}>
+            <ThemedText style={styles.logOutButtonText}>Log Out</ThemedText>
           </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.logOutButton} onPress={logOut}>
-          <ThemedText style={styles.logOutButtonText}>Log Out</ThemedText>
-        </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -253,6 +345,27 @@ const styles = StyleSheet.create({
   errorText: {
     color: "#B00020",
   },
+  avatarPicker: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 12,
+},
+avatar: {
+  width: 72,
+  height: 72,
+  borderRadius: 36,
+},
+avatarEmpty: {
+  borderWidth: 1,
+  borderColor: Colors.accent,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "#fff",
+},
+avatarHint: {
+  fontSize: 13,
+  opacity: 0.7,
+},
   themeOption: {
     borderWidth: 1,
     borderColor: Colors.accent,
@@ -260,7 +373,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   themeOptionTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   logOutButton: {
     borderWidth: 1.5,

@@ -242,6 +242,22 @@ export default function ActiveRaceScreen() {
               Resume Race
             </ThemedText>
           </TouchableOpacity>
+
+          <View style={styles.completeActions}>
+            <TouchableOpacity
+              style={styles.completeButton}
+              onPress={() => router.push("/(tabs)")}
+            >
+              <ThemedText style={styles.completeButtonText}>Map</ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.completeButton}
+              onPress={() => router.push("/(tabs)/ledger")}
+            >
+              <ThemedText style={styles.completeButtonText}>Ledger</ThemedText>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     );

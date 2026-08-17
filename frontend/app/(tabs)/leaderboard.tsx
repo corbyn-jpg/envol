@@ -29,6 +29,7 @@ import { db } from "@/lib/firebase";
 import { getMedal } from "@/lib/medals";
 import { Colors, Fonts, Layout } from "@/constants/theme";
 import { Skeleton, SkeletonRow } from "@/components/skeleton";
+import { COUNTDOWN_PRESETS, formatTime, type GameMode } from "@/lib/game-modes";
 
 type RaceResult = {
   userId: string;
@@ -36,6 +37,8 @@ type RaceResult = {
   speciesFound: number;
   totalSeconds: number;
   completedAt: Date;
+  mode: GameMode;
+  limitSeconds: number | null;
 };
 
 type UserProfile = {
@@ -64,22 +67,6 @@ function bestPerUser(results: RaceResult[]): RaceResult[] {
   return Array.from(bestByUser.values()).sort(compareResults);
 }
 
-function getStartOfWeek(): Date {
-  const now = new Date();
-  const day = now.getDay(); // 0 = Sunday
-  const diffToMonday = day === 0 ? 6 : day - 1;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - diffToMonday);
-  monday.setHours(0, 0, 0, 0);
-  return monday;
-}
-
-function formatTime(totalSeconds: number) {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
-}
-
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
@@ -100,7 +87,10 @@ export default function LeaderboardScreen() {
     Record<string, UserProfile>
   >({});
   const [loading, setLoading] = useState(true);
-  const [showThisWeek, setShowThisWeek] = useState(true);
+  const [selectedMode, setSelectedMode] = useState<GameMode>("sprint");
+  const [selectedDuration, setSelectedDuration] = useState(
+    COUNTDOWN_PRESETS[1].seconds,
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -111,7 +101,7 @@ export default function LeaderboardScreen() {
         const snapshot = await getDocs(
           query(collection(db, "raceResults"), where("arenaId", "==", arenaId)),
         );
-        const results = snapshot.docs.map((doc) => {
+        const results = snapshot.docs.map((doc): RaceResult => {
           const data = doc.data();
           return {
             userId: data.userId,
@@ -119,6 +109,9 @@ export default function LeaderboardScreen() {
             speciesFound: data.speciesFound,
             totalSeconds: data.totalSeconds,
             completedAt: data.completedAt.toDate(),
+            // Results written before Countdown existed have no mode field at all
+            mode: data.mode === "countdown" ? "countdown" : "sprint",
+            limitSeconds: data.limitSeconds ?? null,
           };
         });
         setAllResults(results);
@@ -179,6 +172,14 @@ export default function LeaderboardScreen() {
     return profilesByUser[entry.userId]?.displayName ?? entry.displayName;
   }
 
+  //Sprint shows how long the run took. Countdown shows how much time was left when they stopped
+  function displayTimeFor(entry: RaceResult): string {
+    if (entry.mode === "countdown" && entry.limitSeconds !== null) {
+      return formatTime(Math.max(0, entry.limitSeconds - entry.totalSeconds));
+    }
+    return formatTime(entry.totalSeconds);
+  }
+
   if (arenaLoading) return <LeaderboardSkeleton />;
 
   if (!arenaId) {
@@ -205,9 +206,12 @@ export default function LeaderboardScreen() {
 
   if (loading) return <LeaderboardSkeleton />;
 
-  const filteredResults = showThisWeek
-    ? allResults.filter((result) => result.completedAt >= getStartOfWeek())
-    : allResults;
+  const filteredResults = allResults.filter((result) => {
+    if (selectedMode === "sprint") return result.mode === "sprint";
+    return (
+      result.mode === "countdown" && result.limitSeconds === selectedDuration
+    );
+  });
 
   const ranked = bestPerUser(filteredResults);
   const podium = ranked.slice(0, 3);
@@ -232,34 +236,66 @@ export default function LeaderboardScreen() {
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              showThisWeek && styles.toggleButtonActive,
+              selectedMode === "sprint" && styles.toggleButtonActive,
             ]}
-            onPress={() => setShowThisWeek(true)}
+            onPress={() => setSelectedMode("sprint")}
           >
             <ThemedText
               numberOfLines={1}
-              style={showThisWeek ? styles.toggleTextActive : styles.toggleText}
+              style={
+                selectedMode === "sprint"
+                  ? styles.toggleTextActive
+                  : styles.toggleText
+              }
             >
-              This Week
+              Sprint
             </ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              !showThisWeek && styles.toggleButtonActive,
+              selectedMode === "countdown" && styles.toggleButtonActive,
             ]}
-            onPress={() => setShowThisWeek(false)}
+            onPress={() => setSelectedMode("countdown")}
           >
             <ThemedText
               numberOfLines={1}
               style={
-                !showThisWeek ? styles.toggleTextActive : styles.toggleText
+                selectedMode === "countdown"
+                  ? styles.toggleTextActive
+                  : styles.toggleText
               }
             >
-              All Time
+              Countdown
             </ThemedText>
           </TouchableOpacity>
         </View>
+
+        {selectedMode === "countdown" && (
+          <View style={styles.durationRow}>
+            {COUNTDOWN_PRESETS.map((preset) => (
+              <TouchableOpacity
+                key={preset.seconds}
+                style={[
+                  styles.durationChip,
+                  selectedDuration === preset.seconds &&
+                    styles.durationChipActive,
+                ]}
+                onPress={() => setSelectedDuration(preset.seconds)}
+              >
+                <ThemedText
+                  style={
+                    selectedDuration === preset.seconds
+                      ? styles.durationChipTextActive
+                      : styles.durationChipText
+                  }
+                >
+                  {preset.label}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {podium.length === 0 ? (
           <ThemedText style={styles.emptyText}>
@@ -314,7 +350,7 @@ export default function LeaderboardScreen() {
                     {entry.speciesFound}
                   </ThemedText>
                   <ThemedText style={styles.podiumTime}>
-                    {formatTime(entry.totalSeconds)}
+                    {displayTimeFor(entry)}
                   </ThemedText>
                 </View>
               ) : (
@@ -354,8 +390,8 @@ export default function LeaderboardScreen() {
                 style={styles.rowMedal}
               />
             )}
-            <ThemedText style={styles.rowTime}>
-              {formatTime(entry.totalSeconds)}
+            <ThemedText style={styles.podiumTime}>
+              {displayTimeFor(entry)}
             </ThemedText>
             <ThemedText type="defaultSemiBold">{entry.speciesFound}</ThemedText>
           </View>
@@ -377,8 +413,6 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 24,
   },
-  // Stretching to the container's full width stops the heading being sized to
-  // its own measured width, which was clipping the last word.
   emptyTitle: {
     alignSelf: "stretch",
     textAlign: "center",
@@ -447,6 +481,29 @@ const styles = StyleSheet.create({
   },
   podiumSlotFirst: {
     marginBottom: 16,
+  },
+  durationRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: -8,
+  },
+  durationChip: {
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  durationChipActive: {
+    backgroundColor: Colors.accent,
+  },
+  durationChipText: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  durationChipTextActive: {
+    fontSize: 12,
+    fontFamily: Fonts.bodySemiBold,
   },
   avatar: {
     width: 56,

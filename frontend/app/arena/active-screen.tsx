@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -24,8 +23,9 @@ import { ThemedText } from "@/components/themed-text";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
 import { useRace } from "@/contexts/race-context";
+import { formatTime, progressKey, type GameMode } from "@/lib/game-modes";
 import { Colors, Layout } from "@/constants/theme";
-import { Skeleton, SkeletonRow } from '@/components/skeleton';
+import { Skeleton, SkeletonRow } from "@/components/skeleton";
 
 type Species = {
   id: string;
@@ -36,10 +36,22 @@ type Species = {
 };
 
 export default function ActiveRaceScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  //Route params are always strings, so the limit has to be converted by hand
+  const {
+    id,
+    mode: modeParam,
+    limit,
+  } = useLocalSearchParams<{ id: string; mode?: string; limit?: string }>();
+
+  const mode: GameMode = modeParam === "countdown" ? "countdown" : "sprint";
+  const limitSeconds = limit ? Number(limit) : null;
+  const isCountdown = mode === "countdown";
+  const progressId = progressKey(id, mode, limitSeconds);
+
   const { user } = useAuth();
   const router = useRouter();
   const race = useRace();
+  const runEnded = useRef(false);
 
   const [allSpecies, setAllSpecies] = useState<Species[]>([]);
   const [foundSpeciesIds, setFoundSpeciesIds] = useState<string[]>([]);
@@ -72,32 +84,132 @@ export default function ActiveRaceScreen() {
       if (!id || !user) return;
 
       (async () => {
-        const progressSnapshot = await getDoc(
-          doc(db, "users", user.uid, "raceProgress", id),
-        );
-        const progress = progressSnapshot.data();
-        setFoundSpeciesIds(progress?.foundSpeciesIds ?? []);
-        setAlreadyRecorded(progress?.completed ?? false);
+        const progressRef = doc(db, "users", user.uid, "raceProgress", progressId);
 
-        if (race.arenaId !== id) {
-          race.startRace(id, progress?.accumulatedSeconds ?? 0);
+        //Switching arena OR mode OR duration all count as starting a new race
+        const isNewRace =
+          race.arenaId !== id ||
+          race.mode !== mode ||
+          race.limitSeconds !== limitSeconds;
+
+        // A Countdown is a single sitting, so starting one wipes any leftover
+        // finds — but never after this run has already ended.
+        if (isNewRace && isCountdown && !runEnded.current) {
+          await setDoc(progressRef, {
+            foundSpeciesIds: [],
+            accumulatedSeconds: 0,
+            completed: false,
+          });
+          setFoundSpeciesIds([]);
+          setAlreadyRecorded(false);
+          race.startRace(id, mode, limitSeconds, 0);
+          return;
+        }
+
+        const progressSnapshot = await getDoc(progressRef);
+        const progress = progressSnapshot.data();
+        const completed = progress?.completed ?? false;
+
+        setFoundSpeciesIds(progress?.foundSpeciesIds ?? []);
+        setAlreadyRecorded(completed);
+
+        // A finished race must not restart its clock, or the mini timer keeps running on the other tabs after the arena is already complete.
+        if (isNewRace && !completed) {
+          race.startRace(id, mode, limitSeconds, progress?.accumulatedSeconds ?? 0);
         }
       })();
-    }, [id, user, race.arenaId]),
+    }, [
+      id,
+      user,
+      mode,
+      limitSeconds,
+      progressId,
+      isCountdown,
+      race.arenaId,
+      race.mode,
+      race.limitSeconds,
+    ]),
   );
 
-  //Stops the clock completely when all birds are found
   const isFullyComplete =
     allSpecies.length > 0 && foundSpeciesIds.length === allSpecies.length;
 
-  // Banked time is saved straight away, so pausing and closing the app doesn't
-  // lose the seconds already run.
+  const isTimeUp = isCountdown && race.remainingSeconds === 0;
+
+  //Counts down in Countdown, up in Sprint
+  const displaySeconds = race.remainingSeconds ?? race.totalElapsedSeconds;
+
+  //Writes the finished run to the leaderboard. Shared by every way a race can end.
+  async function recordResult() {
+    if (!user || !id) return;
+
+    // Must happen before stopRace() clears the race context — otherwise the
+    // focus effect can see the cleared context mid-write, think a new race is
+    // starting, and reset the timer before this function finishes recording.
+    runEnded.current = true;
+
+    try {
+      race.stopRace();
+
+      // The ticker can pass zero by a second before the effect fires, so a Countdown's stored time is clamped to its limit.
+      const finalSeconds =
+        limitSeconds !== null
+          ? Math.min(race.totalElapsedSeconds, limitSeconds)
+          : race.totalElapsedSeconds;
+
+      await setDoc(
+        doc(db, "users", user.uid, "raceProgress", progressId),
+        { accumulatedSeconds: finalSeconds, completed: true },
+        { merge: true },
+      );
+
+      const userSnapshot = await getDoc(doc(db, "users", user.uid));
+      const displayName =
+        userSnapshot.data()?.displayName || "Anonymous Birder";
+
+      // First Blood is a Sprint achievement, a timed run can't claim the arena
+      if (mode === "sprint") {
+        await runTransaction(db, async (transaction) => {
+          const arenaRef = doc(db, "arenas", id);
+          const arenaSnapshot = await transaction.get(arenaRef);
+          if (!arenaSnapshot.data()?.firstCompletedBy) {
+            transaction.update(arenaRef, { firstCompletedBy: user.uid });
+          }
+        });
+      }
+
+      await addDoc(collection(db, "raceResults"), {
+        userId: user.uid,
+        displayName,
+        arenaId: id,
+        mode,
+        limitSeconds,
+        totalSeconds: finalSeconds,
+        speciesFound: foundSpeciesIds.length,
+        completedAt: serverTimestamp(),
+      });
+
+      setAlreadyRecorded(true);
+    } catch (err) {
+      console.log("recordResult failed:", err);
+    }
+  }
+
+  // A race ends either by finding everything or by running out of time. Both  can happen without the user pressing anything, so this watches for both.
+  const shouldRecord = isFullyComplete || isTimeUp;
+
+  useEffect(() => {
+    if (!shouldRecord || alreadyRecorded || !user || !id) return;
+    recordResult();
+  }, [shouldRecord, alreadyRecorded, user, id]);
+
+  // Banked time is saved straight away, so pausing and closing the app doesn't lose the seconds already run.
   async function handlePause() {
     race.pauseRace();
 
     if (!user || !id) return;
     await setDoc(
-      doc(db, "users", user.uid, "raceProgress", id),
+      doc(db, "users", user.uid, "raceProgress", progressId),
       { accumulatedSeconds: race.totalElapsedSeconds },
       { merge: true },
     );
@@ -106,8 +218,14 @@ export default function ActiveRaceScreen() {
   async function handleFinish() {
     if (!user || !id) return;
 
+    // Ending a Countdown early still scores
+    if (isCountdown) {
+      if (!alreadyRecorded) await recordResult();
+      return;
+    }
+
     await setDoc(
-      doc(db, "users", user.uid, "raceProgress", id),
+      doc(db, "users", user.uid, "raceProgress", progressId),
       {
         accumulatedSeconds: race.totalElapsedSeconds,
         completed: false,
@@ -119,54 +237,7 @@ export default function ActiveRaceScreen() {
     router.push("/(tabs)");
   }
 
-  // Completion is detected purely from found-species count, so it can happen  the moment the last bird is marked found on the detail screen
-  useEffect(() => {
-    if (!isFullyComplete || alreadyRecorded || !user || !id) return;
-
-    race.stopRace();
-
-    (async () => {
-      await setDoc(
-        doc(db, "users", user.uid, "raceProgress", id),
-        {
-          accumulatedSeconds: race.totalElapsedSeconds,
-          completed: true,
-        },
-        { merge: true },
-      );
-
-      const userSnapshot = await getDoc(doc(db, "users", user.uid));
-      const displayName = userSnapshot.data()?.displayName || "Anonymous Birder";
-
-      // First person to ever fully complete this arena claims First Blood
-      await runTransaction(db, async (transaction) => {
-        const arenaRef = doc(db, "arenas", id);
-        const arenaSnapshot = await transaction.get(arenaRef);
-        if (!arenaSnapshot.data()?.firstCompletedBy) {
-          transaction.update(arenaRef, { firstCompletedBy: user.uid });
-        }
-      });
-
-      await addDoc(collection(db, "raceResults"), {
-        userId: user.uid,
-        displayName,
-        arenaId: id,
-        totalSeconds: race.totalElapsedSeconds,
-        speciesFound: foundSpeciesIds.length,
-        completedAt: serverTimestamp(),
-      });
-
-      setAlreadyRecorded(true);
-    })();
-  }, [isFullyComplete, alreadyRecorded, user, id]);
-
-  const minutes = String(Math.floor(race.totalElapsedSeconds / 60)).padStart(
-    2,
-    "0",
-  );
-  const seconds = String(race.totalElapsedSeconds % 60).padStart(2, "0");
-
-    if (loading) {
+  if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <Banner showBack />
@@ -178,6 +249,45 @@ export default function ActiveRaceScreen() {
             <SkeletonRow key={index} />
           ))}
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Countdown results come first, so a timed run that found everything still  reports its score rather than falling through to the Sprint screen.
+  if (isCountdown && alreadyRecorded) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Banner showBack />
+        <ScrollView contentContainerStyle={styles.centerContent}>
+          <ThemedText type="title">
+            {isFullyComplete ? "Cleared It!" : "Time's Up!"}
+          </ThemedText>
+          <ThemedText type="display" style={styles.timer}>
+            {foundSpeciesIds.length}
+          </ThemedText>
+          <ThemedText style={styles.completeMessage}>
+            {foundSpeciesIds.length === 1 ? "species" : "species"} found in{" "}
+            {formatTime(limitSeconds ?? 0)}
+          </ThemedText>
+
+          <View style={styles.completeActions}>
+            <TouchableOpacity
+              style={styles.completeButton}
+              onPress={() => router.push("/(tabs)")}
+            >
+              <ThemedText style={styles.completeButtonText}>Map</ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.completeButton, styles.completeButtonPrimary]}
+              onPress={() => router.push("/(tabs)/leaderboard")}
+            >
+              <ThemedText style={styles.completeButtonPrimaryText}>
+                Leaderboard
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -215,15 +325,14 @@ export default function ActiveRaceScreen() {
     );
   }
 
-  // The bird list is deliberately hidden while paused — otherwise stopping the
-  // clock would just be a way to hunt for free.
+  // The bird list is deliberately hidden while paused
   if (race.isPaused && race.arenaId === id) {
     return (
       <SafeAreaView style={styles.container}>
         <Banner showBack />
         <ScrollView contentContainerStyle={styles.centerContent}>
           <ThemedText type="display" style={styles.timer}>
-            {minutes}:{seconds}
+            {formatTime(displaySeconds)}
           </ThemedText>
           <ThemedText type="title">Paused</ThemedText>
           <ThemedText style={styles.completeMessage}>
@@ -266,13 +375,20 @@ export default function ActiveRaceScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Banner showBack />
+
+      <ThemedText style={styles.modeLabel}>
+        {isCountdown ? "COUNTDOWN CHALLENGE" : "STOPWATCH SPRINT"}
+      </ThemedText>
       <ThemedText type="display" style={styles.timer}>
-        {minutes}:{seconds}
+        {formatTime(displaySeconds)}
       </ThemedText>
 
-      <TouchableOpacity style={styles.pauseButton} onPress={handlePause}>
-        <ThemedText style={styles.pauseButtonText}>Pause</ThemedText>
-      </TouchableOpacity>
+      {/* Pausing a timed challenge would defeat its whole premise */}
+      {!isCountdown && (
+        <TouchableOpacity style={styles.pauseButton} onPress={handlePause}>
+          <ThemedText style={styles.pauseButtonText}>Pause</ThemedText>
+        </TouchableOpacity>
+      )}
 
       <ScrollView contentContainerStyle={styles.list}>
         {allSpecies.map((species) => {
@@ -285,7 +401,14 @@ export default function ActiveRaceScreen() {
               onPress={() =>
                 router.push({
                   pathname: "/species/detail-screen",
-                  params: { arenaId: id, speciesId: species.id },
+                  params: {
+                    arenaId: id,
+                    speciesId: species.id,
+                    mode,
+                    ...(limitSeconds !== null
+                      ? { limit: String(limitSeconds) }
+                      : {}),
+                  },
                 })
               }
             >
@@ -340,14 +463,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.background,
-  },
-  // flexGrow rather than flex so the content still centres on a tall screen but
-  // scrolls instead of clipping on a short landscape one.
+  // flexGrow rather than flex so the content still centres on a tall screen but scrolls instead of clipping on a short landscape one.
   centerContent: {
     flexGrow: 1,
     justifyContent: "center",
@@ -382,6 +498,13 @@ const styles = StyleSheet.create({
   completeButtonPrimaryText: {
     color: Colors.background,
     fontWeight: "600",
+  },
+  modeLabel: {
+    textAlign: "center",
+    fontSize: 11,
+    letterSpacing: 1,
+    opacity: 0.7,
+    marginTop: 16,
   },
   timer: {
     textAlign: "center",

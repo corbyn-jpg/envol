@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-
-import { Banner } from '@/components/banner';
-import { ThemedText } from '@/components/themed-text';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { db } from '@/lib/firebase';
-import { getCurrentSeason } from '@/lib/season';
-import { Colors, Fonts, Layout } from '@/constants/theme';
-import { useTheme } from '@/contexts/theme-context';
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { COUNTDOWN_PRESETS, type GameMode } from "@/lib/game-modes";
+import { Banner } from "@/components/banner";
+import { ThemedText } from "@/components/themed-text";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { db } from "@/lib/firebase";
+import { getCurrentSeason } from "@/lib/season";
+import { Colors, Fonts, Layout } from "@/constants/theme";
+import { useTheme } from "@/contexts/theme-context";
 
 type ArenaDetails = {
   name: string;
@@ -19,9 +25,9 @@ type ArenaDetails = {
 };
 
 const TIPS = [
-  'Move quietly — birds sense disturbance quickly',
-  'Look up as well as around — many species perch high',
-  'You identify the birds yourself using your own skills',
+  "Move quietly — birds sense disturbance quickly",
+  "Look up as well as around — many species perch high",
+  "You identify the birds yourself using your own skills",
 ];
 
 export default function ArenaEntryScreen() {
@@ -30,12 +36,16 @@ export default function ArenaEntryScreen() {
   const { primary } = useTheme();
   const [arena, setArena] = useState<ArenaDetails | null>(null);
   const [speciesCount, setSpeciesCount] = useState(0);
+  const [mode, setMode] = useState<GameMode>("sprint");
+  const [limitSeconds, setLimitSeconds] = useState(
+    COUNTDOWN_PRESETS[1].seconds,
+  );
 
   useEffect(() => {
     if (!id) return;
 
     (async () => {
-      const snapshot = await getDoc(doc(db, 'arenas', id));
+      const snapshot = await getDoc(doc(db, "arenas", id));
       const data = snapshot.data();
       if (data) {
         setArena({
@@ -45,7 +55,9 @@ export default function ArenaEntryScreen() {
         });
       }
 
-      const speciesSnapshot = await getDocs(collection(db, 'arenas', id, 'birds'));
+      const speciesSnapshot = await getDocs(
+        collection(db, "arenas", id, "birds"),
+      );
       setSpeciesCount(speciesSnapshot.size);
     })();
   }, [id]);
@@ -86,9 +98,20 @@ export default function ArenaEntryScreen() {
         </View>
 
         <ThemedText style={styles.sectionLabel}>RACE MODE</ThemedText>
-        <View style={[styles.modeCard, { borderColor: primary }]}>
+
+        <TouchableOpacity
+          style={[
+            styles.modeCard,
+            { borderColor: mode === "sprint" ? primary : Colors.accent },
+          ]}
+          onPress={() => setMode("sprint")}
+        >
           <View style={[styles.modeIcon, { backgroundColor: primary }]}>
-            <IconSymbol name="stopwatch.fill" size={22} color={Colors.background} />
+            <IconSymbol
+              name="stopwatch.fill"
+              size={22}
+              color={Colors.background}
+            />
           </View>
           <View style={styles.modeTextContainer}>
             <ThemedText type="subtitle">Stopwatch Sprint</ThemedText>
@@ -100,22 +123,85 @@ export default function ArenaEntryScreen() {
               you're done. Score tallied at finish.
             </ThemedText>
           </View>
-        </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.modeCard,
+            { borderColor: mode === "countdown" ? primary : Colors.accent },
+          ]}
+          onPress={() => setMode("countdown")}
+        >
+          <View style={[styles.modeIcon, { backgroundColor: primary }]}>
+            <IconSymbol name="timer" size={22} color={Colors.background} />
+          </View>
+          <View style={styles.modeTextContainer}>
+            <ThemedText type="subtitle">Countdown Challenge</ThemedText>
+            <ThemedText style={styles.modeSubtitle}>
+              Beat the clock · Fixed time
+            </ThemedText>
+            <ThemedText style={styles.modeDescription}>
+              Find as many species as you can before time runs out. The run ends
+              automatically at zero.
+            </ThemedText>
+
+            {mode === "countdown" && (
+              <View style={styles.presetRow}>
+                {COUNTDOWN_PRESETS.map((preset) => (
+                  <TouchableOpacity
+                    key={preset.seconds}
+                    style={[
+                      styles.preset,
+                      limitSeconds === preset.seconds && {
+                        backgroundColor: primary,
+                        borderColor: primary,
+                      },
+                    ]}
+                    onPress={() => setLimitSeconds(preset.seconds)}
+                  >
+                    <ThemedText
+                      style={
+                        limitSeconds === preset.seconds
+                          ? styles.presetTextActive
+                          : styles.presetText
+                      }
+                    >
+                      {preset.label}
+                    </ThemedText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
 
         <ThemedText style={styles.sectionLabel}>BEFORE YOU BEGIN</ThemedText>
         <View style={styles.tipsCard}>
           {TIPS.map((tip) => (
             <ThemedText key={tip} style={styles.tip}>
-              •  {tip}
+              • {tip}
             </ThemedText>
           ))}
         </View>
 
         <TouchableOpacity
           style={[styles.startButton, { backgroundColor: primary }]}
-          onPress={() => router.push({ pathname: '/arena/active-screen', params: { id } })}
+          onPress={() =>
+            router.push({
+              pathname: "/arena/active-screen",
+              params: {
+                id,
+                mode,
+                ...(mode === "countdown"
+                  ? { limit: String(limitSeconds) }
+                  : {}),
+              },
+            })
+          }
         >
-          <ThemedText style={styles.startButtonText}>Start Sprint</ThemedText>
+          <ThemedText style={styles.startButtonText}>
+            {mode === "sprint" ? "Start Sprint" : "Start Challenge"}
+          </ThemedText>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -129,23 +215,23 @@ const styles = StyleSheet.create({
   },
   center: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: Colors.background,
   },
   content: {
     padding: 24,
     gap: 20,
-    width: '100%',
+    width: "100%",
     maxWidth: Layout.contentMaxWidth,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   activeCard: {
     borderWidth: 1.5,
     borderRadius: 16,
     padding: 16,
     gap: 4,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   activeLabel: {
     fontSize: 12,
@@ -155,7 +241,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 24,
     marginTop: 8,
   },
@@ -173,19 +259,19 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   modeCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     borderWidth: 1.5,
     borderRadius: 16,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   modeIcon: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   modeTextContainer: {
     flex: 1,
@@ -197,19 +283,40 @@ const styles = StyleSheet.create({
   modeDescription: {
     marginTop: 4,
   },
+  presetRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+  },
+  preset: {
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  presetText: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  presetTextActive: {
+    fontSize: 12,
+    color: "#fff",
+    fontFamily: Fonts.bodySemiBold,
+  },
   tipsCard: {
     borderWidth: 1,
     borderColor: Colors.accent,
     borderRadius: 12,
     padding: 16,
     gap: 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   tip: {},
   startButton: {
     borderRadius: 8,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   startButtonText: {

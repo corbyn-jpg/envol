@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Colors, Fonts, Layout } from "@/constants/theme";
 import * as ImagePicker from "expo-image-picker";
 import { parseExifDate, wasTakenToday } from "@/lib/photo-verification";
+import { progressKey, type GameMode } from "@/lib/game-modes";
 
 type SpeciesDetails = {
   commonName: string;
@@ -32,15 +33,20 @@ type SpeciesDetails = {
 };
 
 export default function SpeciesDetailScreen() {
-  const { arenaId, speciesId } = useLocalSearchParams<{
+  const { arenaId, speciesId, mode: modeParam, limit } = useLocalSearchParams<{
     arenaId: string;
     speciesId: string;
+    mode?: string;
+    limit?: string;
   }>();
   const { user } = useAuth();
   const router = useRouter();
   const [species, setSpecies] = useState<SpeciesDetails | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const mode: GameMode = modeParam === "countdown" ? "countdown" : "sprint";
+  const limitSeconds = limit ? Number(limit) : null;
+  const progressId = progressKey(arenaId, mode, limitSeconds);
 
   //A 260px hero image eats most of a landscape viewport, so it shrinks there
   const { width, height } = useWindowDimensions();
@@ -112,7 +118,7 @@ export default function SpeciesDetailScreen() {
   async function handleFound() {
     if (!user || !arenaId || !speciesId) return;
 
-    const progressRef = doc(db, "users", user.uid, "raceProgress", arenaId);
+    const progressRef = doc(db, "users", user.uid, "raceProgress", progressId);
     const progressSnapshot = await getDoc(progressRef);
 
     await setDoc(

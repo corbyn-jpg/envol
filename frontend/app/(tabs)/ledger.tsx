@@ -95,23 +95,6 @@ export default function LedgerScreen() {
     );
   }
 
-    if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Banner />
-        <View style={styles.content}>
-          <Skeleton width={120} height={11} />
-          <Skeleton width={180} height={28} />
-          <Skeleton height={8} borderRadius={4} />
-          <Skeleton width={140} height={11} />
-          {[0, 1, 2, 3, 4].map((index) => (
-            <SkeletonRow key={index} />
-          ))}
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   const found = allSpecies.filter((species) => foundSpeciesIds.includes(species.id));
   const notFound = allSpecies.filter((species) => !foundSpeciesIds.includes(species.id));
   const progress = allSpecies.length > 0 ? found.length / allSpecies.length : 0;

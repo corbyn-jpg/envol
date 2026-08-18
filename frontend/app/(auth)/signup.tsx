@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
+import { PasswordInput } from "@/components/password-input";
 import { ThemedText } from "@/components/themed-text";
 import { OrnateDivider } from "@/components/ornate-divider";
 import { useAuth } from "@/contexts/auth-context";
@@ -76,21 +77,15 @@ export default function SignupScreen() {
             />
 
             {/*Password input */}
-            <TextInput
-              style={styles.input}
+            <PasswordInput
               placeholder="Password"
-              placeholderTextColor={Colors.text + "80"}
-              secureTextEntry
               value={password}
               onChangeText={setPassword}
             />
 
             {/*Confirm password input */}
-            <TextInput
-              style={styles.input}
+            <PasswordInput
               placeholder="Confirm Password"
-              placeholderTextColor={Colors.text + "80"}
-              secureTextEntry
               value={confirmPassword}
               onChangeText={setConfirmPassword}
             />

@@ -135,6 +135,18 @@ export default function SpeciesDetailScreen() {
       { merge: true },
     );
 
+    // The Ledger is the player's permanent record for an arena and reads the Sprint document, so a Countdown find is mirrored into it.
+    if (mode === "countdown") {
+      await setDoc(
+        doc(db, "users", user.uid, "raceProgress", arenaId),
+        {
+          foundSpeciesIds: arrayUnion(speciesId),
+          foundAt: { [speciesId]: serverTimestamp() },
+        },
+        { merge: true },
+      );
+    }
+
     router.back();
   }
 

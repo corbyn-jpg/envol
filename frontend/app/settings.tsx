@@ -19,6 +19,7 @@ import {
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { PasswordInput } from "@/components/password-input";
 import { ThemedText } from "@/components/themed-text";
 import { useAuth } from "@/contexts/auth-context";
 import { useTheme } from "@/contexts/theme-context";
@@ -260,24 +261,18 @@ export default function Settings() {
           {/* Change password */}
           <View style={styles.section}>
             <ThemedText type="subtitle">Change Password</ThemedText>
-            <TextInput
-              style={styles.input}
+            <PasswordInput
               placeholder="Current password"
-              secureTextEntry
               value={currentPassword}
               onChangeText={setCurrentPassword}
             />
-            <TextInput
-              style={styles.input}
+            <PasswordInput
               placeholder="New password"
-              secureTextEntry
               value={newPassword}
               onChangeText={setNewPassword}
             />
-            <TextInput
-              style={styles.input}
+            <PasswordInput
               placeholder="Confirm new password"
-              secureTextEntry
               value={confirmNewPassword}
               onChangeText={setConfirmNewPassword}
             />

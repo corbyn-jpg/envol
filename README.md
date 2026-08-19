@@ -1,4 +1,5 @@
 # Envol
+<img width="736" height="525" alt="99_ Verreaux&#39;s Eagle-owl (Bubo lacteus) _ widespread in sub-Saharan Africa" src="https://github.com/user-attachments/assets/ac47958d-ea89-490f-9cb8-a23b127b3b89" />
 
 A location-based birdwatching race for mobile. Players travel to real-world **arenas**, race to identify the bird species found there, and verify each sighting with a photograph. Built with React Native (Expo) and Firebase.
 
@@ -204,6 +205,10 @@ The one credential that would need protecting is an Anthropic API key, had the A
 - **Duplicate photo detection** — hashing accepted photos would stop one good photograph being shared around a group, a cheat no image analysis catches because the photo is genuine.
 - **Google Sign-In** was deferred; it requires leaving Expo Go for a development build.
 - **No offline support.** Every screen assumes a live Firestore connection.
+
+---
+
+<img width="736" height="552" alt="Amethyst Sunbird - eBird" src="https://github.com/user-attachments/assets/5199be61-6611-468d-9c70-b79dcacce75e" />
 
 
 ## Demo Video

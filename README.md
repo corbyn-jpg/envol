@@ -20,7 +20,7 @@ A location-based birdwatching race for mobile. Players travel to real-world **ar
 
 ## Contents
 
-- [Mockups](#mockups)
+- [Screenshots of app](#mockups)
 - [What it does](#what-it-does)
 - [Tech stack](#tech-stack)
 - [Running the project](#running-the-project)

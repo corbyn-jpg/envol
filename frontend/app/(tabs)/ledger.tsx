@@ -159,15 +159,19 @@ export default function LedgerScreen() {
         ))}
 
         <ThemedText style={styles.sectionLabel}>NOT YET FOUND · {notFound.length}</ThemedText>
+        {/* Deliberately anonymous */}
         {notFound.map((species) => (
-          <View key={species.id} style={styles.row}>
-            <Image source={{ uri: species.imageUrl }} style={styles.thumbnail} />
-            <View style={styles.rowText}>
-              <ThemedText type="defaultSemiBold">{species.commonName}</ThemedText>
-              <ThemedText type="scientific">{species.scientificName}</ThemedText>
+          <View key={species.id} style={[styles.row, styles.rowUndiscovered]}>
+            <View style={styles.mysteryThumbnail}>
+              <IconSymbol name="questionmark" size={20} color={Colors.text} />
             </View>
-            <View style={styles.unseenPill}>
-              <ThemedText style={styles.unseenPillText}>Unseen</ThemedText>
+            <View style={styles.rowText}>
+              <ThemedText type="defaultSemiBold" style={styles.mysteryName}>
+                Undiscovered
+              </ThemedText>
+              <ThemedText style={styles.mysteryHint}>
+                Find it in the field to reveal
+              </ThemedText>
             </View>
           </View>
         ))}
@@ -296,16 +300,25 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: Fonts.bodySemiBold,
   },
-  unseenPill: {
-    borderWidth: 1,
-    borderColor: Colors.accent,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  // A dashed border reads as "not yet filled in" without needing a label
+  rowUndiscovered: {
+    borderStyle: 'dashed',
+    backgroundColor: 'transparent',
   },
-  unseenPillText: {
-    fontSize: 11,
+  mysteryThumbnail: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.accent + '40',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mysteryName: {
     opacity: 0.7,
+  },
+  mysteryHint: {
+    fontSize: 12,
+    opacity: 0.5,
   },
   miniTimerFloat: {
     alignSelf: 'flex-start',

@@ -27,6 +27,7 @@ const MAPPING = {
   'crown.fill': 'emoji-events',
   'star.fill': 'star',
   'checkmark': 'check',
+  'questionmark': 'help-outline',
   'eye': 'visibility',
   'eye.slash': 'visibility-off',
 } as IconMapping;

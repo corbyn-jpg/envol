@@ -35,7 +35,7 @@ A location-based birdwatching race for mobile. Players travel to real-world **ar
 
 ## What it does
 
-**Arenas and location.** The map shows nearby arenas pulled from Firestore. Each arena has a coordinate and a radius; the app compares the device's GPS position against them using the haversine formula and only unlocks an arena once the player is physically inside it. The Ledger and Leaderboard tabs follow the same rule — they show the arena you are currently standing in.
+**Arenas and location.** The map shows nearby arenas pulled from Firestore. Each arena has a coordinate and a radius; the app compares the device's GPS position against them using the haversine formula and only unlocks an arena once the player is physically inside it. The Ledger and Leaderboard tabs follow the same rule: they show the arena you are currently standing in.
 
 **Two game modes.**
 
@@ -46,13 +46,13 @@ A location-based birdwatching race for mobile. Players travel to real-world **ar
 
 The race clock lives in a React Context, so it keeps running while the player moves between the map, the ledger and species pages. A mini timer appears on those screens and taps back into the active race. Sprints can be paused; Countdown runs deliberately cannot.
 
-**Photo verification.** A species is only logged as found after the player supplies a photograph whose EXIF `DateTimeOriginal` falls on the current day. Images with stripped metadata — screenshots, downloads, anything forwarded through a messaging app — are rejected. The photo is inspected and discarded; nothing is stored.
+**Photo verification.** A species is only logged as found after the player supplies a photograph whose EXIF `DateTimeOriginal` falls on the current day. Images with stripped metadata. Screenshots, downloads, anything forwarded through a messaging app are rejected. The photo is inspected and discarded; nothing is stored.
 
 **Ledger.** A per-arena record of species found versus still unseen, with a progress bar. Countdown finds are mirrored into it, so timed runs still build the permanent log.
 
-**Leaderboard.** Per arena, segmented by mode, and — because a score is only comparable against the same clock — segmented again by duration within Countdown. Ranked by species found, with elapsed time as the tiebreaker. Sprint entries show how long the run took; Countdown entries show how much time was left. Names, profile pictures and favourite medals are read live rather than from the frozen copy stored on the result.
+**Leaderboard.** Per arena, segmented by mode, and, because a score is only comparable against the same clock, segmented again by duration within Countdown. Ranked by species found, with elapsed time as the tiebreaker. Sprint entries show how long the run took; Countdown entries show how much time was left. Names, profile pictures and favourite medals are read live rather than from the frozen copy stored on the result.
 
-**Medals.** Eight achievements derived from race history rather than stored as flags — Early Bird, Night Owl, Weekend Warrior, Speed Demon, First Blood, Explorer, Comeback and Marathoner. Players choose one as a favourite, which then appears beside their name on the leaderboard.
+**Medals.** Eight achievements derived from race history rather than stored as flags: Early Bird, Night Owl, Weekend Warrior, Speed Demon, First Blood, Explorer, Comeback and Marathoner. Players choose one as a favourite, which then appears beside their name on the leaderboard.
 
 **Seasonal theming.** The accent colour follows the current season, or can be pinned manually in Settings.
 
@@ -149,11 +149,11 @@ raceResults/{resultId}
 
 ## Architecture notes
 
-**The race timer is a context, not screen state.** A timer owned by the race screen would reset every time the player navigated to a species page and back. Instead `RaceProvider` tracks a start timestamp plus banked seconds, and elapsed time is derived from `Date.now()` rather than accumulated by an interval — so the clock stays accurate even if the ticking is throttled. Countdown is the same value subtracted from a limit, which means countdown needed no new timing logic at all.
+**The race timer is a context, not screen state.** A timer owned by the race screen would reset every time the player navigated to a species page and back. Instead `RaceProvider` tracks a start timestamp plus banked seconds, and elapsed time is derived from `Date.now()` rather than accumulated by an interval so the clock stays accurate even if the ticking is throttled. Countdown is the same value subtracted from a limit, which means countdown needed no new timing logic at all.
 
-**Completion is detected, not triggered.** A race can end without the player pressing anything — the last species gets logged on the detail screen, or the clock reaches zero. Recording is therefore driven by derived state (`isFullyComplete || isTimeUp`) rather than by a button handler, with a guard flag preventing a double write.
+**Completion is detected, not triggered.** A race can end without the player pressing anything. The last species gets logged on the detail screen, or the clock reaches zero. Recording is therefore driven by derived state (`isFullyComplete || isTimeUp`) rather than by a button handler, with a guard flag preventing a double write.
 
-**Denormalised display names.** `raceResults` stores the player's name at completion time so the leaderboard has a fallback without an extra read, but the leaderboard prefers the live value from `users/{uid}` — otherwise renaming yourself would leave stale names scattered across old results, and the results are immutable by design.
+**Denormalised display names.** `raceResults` stores the player's name at completion time so the leaderboard has a fallback without an extra read, but the leaderboard prefers the live value from `users/{uid}`, otherwise renaming yourself would leave stale names scattered across old results, and the results are immutable by design.
 
 **Medals are derived, not awarded.** Nothing writes "you earned Early Bird". `lib/medals.ts` defines each medal as a predicate over the player's race history, evaluated on render. Adding a medal means adding one entry to an array. The trade-off is that medal logic depends on history staying available.
 
@@ -177,11 +177,11 @@ The one credential that would need protecting is an Anthropic API key, had the A
 
 ## Constraints and trade-offs
 
-**Cloud Storage requires a paid Firebase plan**, so profile pictures could not be uploaded conventionally. Instead images are cropped square, resized to 256px, JPEG-compressed and stored as a base64 data URI on the user document. That keeps the feature on the free tier at the cost of roughly 15–25KB per user, and it works because a data URI is accepted anywhere an image URL is. Size discipline matters here — the leaderboard reads every displayed racer's user document.
+**Cloud Storage requires a paid Firebase plan**, so profile pictures could not be uploaded conventionally. Instead images are cropped square, resized to 256px, JPEG-compressed and stored as a base64 data URI on the user document. That keeps the feature on the free tier at the cost of roughly 15–25KB per user, and it works because a data URI is accepted anywhere an image URL is. Size discipline matters here: the leaderboard reads every displayed racer's user document.
 
 **Photo verification: metadata over AI.** The stronger design would send each photo to a vision model to confirm it shows the expected species. That was costed and prototyped: roughly R0.25 per verification, requiring a serverless proxy to hold the API key, since embedding it in the app would let anyone extract and spend it. Metadata validation was chosen instead as a free, offline, zero-infrastructure check that still defeats the most common cheats. Its honest limit is that it proves *when* a photo was taken, not *what it shows*.
 
-**In-app capture was considered and rejected.** Forcing the camera would make the timestamp unfakeable, but it would also exclude photographs taken on a dedicated camera — a real use case for birdwatchers. Trusting metadata is the cost of supporting them.
+**In-app capture was considered and rejected.** Forcing the camera would make the timestamp unfakeable, but it would also exclude photographs taken on a dedicated camera, a real use case for birdwatchers. Trusting metadata is the cost of supporting them.
 
 ---
 

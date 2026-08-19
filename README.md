@@ -58,6 +58,8 @@ The race clock lives in a React Context, so it keeps running while the player mo
 
 ---
 
+<img width="736" height="497" alt="African Fish Eagle" src="https://github.com/user-attachments/assets/32002af9-e7bf-416e-9ea9-52d641ffc6d3" />
+
 ## Tech stack
 
 | Concern | Choice |
@@ -101,6 +103,9 @@ Arenas and their bird species are not created by the app; they must exist in Fir
 Field names inside `birds` documents contain spaces (`common name`, `scientific name`, `fun fact`), which is why the code reads them with bracket notation rather than dot access.
 
 ---
+
+<img width="736" height="533" alt="Little Bee-Eater" src="https://github.com/user-attachments/assets/7b9190f7-d42a-46e0-9591-d5520c0873da" />
+
 
 ## Project structure
 
@@ -147,6 +152,9 @@ raceResults/{resultId}
 
 ---
 
+<img width="735" height="490" alt="Ossenpikker" src="https://github.com/user-attachments/assets/368d47e0-9f13-430a-9a46-6ec5349a4af9" />
+
+
 ## Architecture notes
 
 **The race timer is a context, not screen state.** A timer owned by the race screen would reset every time the player navigated to a species page and back. Instead `RaceProvider` tracks a start timestamp plus banked seconds, and elapsed time is derived from `Date.now()` rather than accumulated by an interval so the clock stays accurate even if the ticking is throttled. Countdown is the same value subtracted from a limit, which means countdown needed no new timing logic at all.
@@ -174,6 +182,9 @@ Rules this app depends on:
 The one credential that would need protecting is an Anthropic API key, had the AI verification path been taken — see below.
 
 ---
+
+<img width="736" height="490" alt="Pied Kingfisher" src="https://github.com/user-attachments/assets/a5184068-dd09-4684-a0b3-87a9964043d9" />
+
 
 ## Constraints and trade-offs
 

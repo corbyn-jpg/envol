@@ -42,7 +42,7 @@ A location-based birdwatching race for mobile. Players travel to real-world **ar
 | Mode | Timer | Ends when |
 | --- | --- | --- |
 | Stopwatch Sprint | Counts up, no limit | Every species found, or the player finishes |
-| Countdown Challenge | Counts down from 5, 10 or 20 minutes | Time expires, every species found, or the player finishes early |
+| Countdown Challenge | Counts down from 30 minutes, 1 or 2 hours | Time expires, every species found, or the player finishes early |
 
 The race clock lives in a React Context, so it keeps running while the player moves between the map, the ledger and species pages. A mini timer appears on those screens and taps back into the active race. Sprints can be paused; Countdown runs deliberately cannot.
 

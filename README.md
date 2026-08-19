@@ -13,11 +13,11 @@ A location-based birdwatching race for mobile. Players travel to real-world **ar
 
 | Map | Race in progress | Leaderboard |
 | --- | --- | --- |
-| ![Map screen](assets/screenshots/map.png) | ![Active race](assets/screenshots/race.png) | ![Leaderboard](assets/screenshots/leaderboard.png) |
+| <img width="1080" height="2116" alt="Screenshot_20260819_152927_Expo Go" src="https://github.com/user-attachments/assets/29aa4523-b9e5-47db-a3ed-defe59660412" />| <img width="1080" height="2116" alt="Screenshot_20260819_180653_Expo Go" src="https://github.com/user-attachments/assets/6cd772f2-c03d-4e7f-bacb-f2a62b0b19de" /> | <img width="1080" height="2116" alt="Screenshot_20260819_181457_Expo Go" src="https://github.com/user-attachments/assets/0ed8325a-a865-45a4-bd57-ab982ee2a666" /> |
 
 | Ledger | Medals | Species detail |
 | --- | --- | --- |
-| ![Ledger](assets/screenshots/ledger.png) | ![Medals](assets/screenshots/medals.png) | ![Species detail](assets/screenshots/species.png) |
+| <img width="1080" height="2116" alt="Screenshot_20260819_180746_Expo Go" src="https://github.com/user-attachments/assets/e33c18c6-b704-467f-8a89-dc346bd8f41d" />| <img width="1080" height="2116" alt="Screenshot_20260819_181454_Expo Go" src="https://github.com/user-attachments/assets/57a5c3b6-ff0d-44d4-b073-358c55b56bf9" /> | <img width="1080" height="2116" alt="Screenshot_20260819_181243_Expo Go" src="https://github.com/user-attachments/assets/413a975c-9e05-43d5-92c8-4ff29270a685" />
 
 ---
 

@@ -196,3 +196,7 @@ The one credential that would need protecting is an Anthropic API key, had the A
 - **Duplicate photo detection** — hashing accepted photos would stop one good photograph being shared around a group, a cheat no image analysis catches because the photo is genuine.
 - **Google Sign-In** was deferred; it requires leaving Expo Go for a development build.
 - **No offline support.** Every screen assumes a live Firestore connection.
+
+
+## Demo Video
+https://drive.google.com/drive/folders/1xB-WG3HAU4v7MIL8T4z9ltn_a5msdfLC?usp=drive_link

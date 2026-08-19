@@ -6,10 +6,7 @@ A location-based birdwatching race for mobile. Players travel to real-world **ar
 
 ---
 
-## Mockups
-
-<!-- Drop the exported images into assets/screenshots/ using these filenames and
-     they will appear here automatically. Delete any row you don't end up using. -->
+## Screenshots of app
 
 | Map | Race in progress | Leaderboard |
 | --- | --- | --- |

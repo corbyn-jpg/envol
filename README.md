@@ -152,11 +152,11 @@ Icons are Material Icons, drawn through a single `IconSymbol` component, so ther
 
 | Concern | Choice |
 | --- | --- |
-| Framework | React Native 0.81 via Expo SDK 54 |
+| Framework | React Native 0.86 via Expo SDK 57 |
 | Language | TypeScript |
 | Navigation | Expo Router (file-based, typed routes) |
 | Backend | Firebase — Authentication and Cloud Firestore |
-| Maps | `react-native-maps` |
+| Maps | Leaflet with OpenStreetMap tiles, in `react-native-webview` |
 | Location | `expo-location` |
 | Camera / photos | `expo-image-picker`, `expo-image-manipulator` |
 | Fonts | Cinzel Decorative, Amarante, Tinos via `@expo-google-fonts` |
@@ -165,7 +165,7 @@ Icons are Material Icons, drawn through a single `IconSymbol` component, so ther
 
 ## Run it yourself
 
-You'll need Node.js 18+ and the **Expo Go** app on a physical phone. Location and camera features need real hardware, so an emulator won't get you far.
+You'll need Node.js 20.19+ (or 22.13+) and the **Expo Go** app on a physical phone. Location and camera features need real hardware, so an emulator won't get you far.
 
 ```bash
 git clone https://github.com/corbyn-jpg/envol.git
@@ -249,7 +249,9 @@ raceResults/{resultId}
 
 ## How it's built
 
-**Arenas use real distance.** Each arena has a coordinate and a radius. The `use-nearby-arena` hook compares the phone's GPS position against every arena with the haversine formula and only unlocks one once the player is physically inside it. The Map, Ledger and Leaderboard all share that hook, so they always agree on where you are.
+**Arenas use real distance.** Each arena has a coordinate and a radius. The app compares the phone's GPS position against every arena with the haversine formula and only unlocks one once the player is physically inside it. The Ledger and Leaderboard share that logic through the `use-nearby-arena` hook, so they always agree on where you are.
+
+**The map is a small web page.** `components/osm-map.tsx` builds a Leaflet map as an HTML string and shows it in a WebView, with the player's position, a pin per arena, and each arena's entry radius drawn as a circle in the season's colour. Arena data goes into the page as escaped JSON, and pop-up names are set with `textContent`, so an arena name can never be run as code.
 
 **The race timer is a context, not screen state.** A timer owned by the race screen would reset every time the player navigated to a species page and back. Instead `RaceProvider` tracks a start timestamp plus banked seconds, and elapsed time is derived from `Date.now()` rather than accumulated by an interval, so the clock stays accurate even if the ticking is throttled. Countdown is the same value subtracted from a limit, which means countdown needed no new timing logic at all.
 
@@ -287,6 +289,8 @@ The one credential that would need protecting is an Anthropic API key, had the A
 
 **In-app capture was considered and rejected.** Forcing the camera would make the timestamp unfakeable, but it would also exclude photographs taken on a dedicated camera, a real use case for birdwatchers. Trusting metadata is the cost of supporting them.
 
+**OpenStreetMap instead of Google Maps.** The map was first built with `react-native-maps`, which draws Google Maps on Android. After the upgrade to SDK 57 it rendered solid black: Expo Go for Android ships with an expired Google Maps key ([expo/expo#49323](https://github.com/expo/expo/issues/49323)), and no app setting can override it. Using a key of our own would have meant a development build and a Google Cloud billing account. Leaflet with OpenStreetMap tiles needs neither and runs in Expo Go, and it can draw each arena's radius, which the old map didn't show. The cost is that the map is a web page inside the app rather than a native map component.
+
 **Google Sign-In needs a development build.** Native Google sign-in can't run inside Expo Go, and moving to a development build would change how everyone tests the app, so it was left for later.
 
 ---
@@ -317,6 +321,7 @@ npm run lint        # Expo's ESLint config
 
 - **Fonts:** Cinzel Decorative and Amarante (SIL Open Font License), Tinos (Apache License 2.0), via Google Fonts.
 - **Icons:** Material Icons via `@expo/vector-icons` (Apache License 2.0).
+- **Map data:** © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (Open Database License), drawn with [Leaflet](https://leafletjs.com) (BSD 2-Clause).
 - **Bird photographs:** [add photo credits here].
 
 Built by [@corbyn-jpg](https://github.com/corbyn-jpg) for DV 300 at Open Window.

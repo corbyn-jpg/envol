@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import MapView, { Marker } from "react-native-maps";
+import { OsmMap } from "@/components/osm-map";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { collection, getDocs } from "firebase/firestore";
@@ -154,19 +154,12 @@ export default function MapScreen() {
 
       <View style={styles.mapContainer}>
         {/* Creates arena markers */}
-        <MapView style={styles.map} initialRegion={region} showsUserLocation>
-          {arenas.map((arena) => (
-            <Marker
-              key={arena.id}
-              coordinate={{
-                latitude: arena.latitude,
-                longitude: arena.longitude,
-              }}
-              title={arena.name}
-              description={arena.province}
-            />
-          ))}
-        </MapView>
+        <OsmMap
+          latitude={region.latitude}
+          longitude={region.longitude}
+          arenas={arenas}
+          accentColor={primary}
+        />
 
         <View style={styles.miniTimerFloat}>
           <MiniTimer />
@@ -275,9 +268,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.background,
-  },
-  map: {
-    flex: 1,
   },
   enterButtonDisabled: {
     backgroundColor: Colors.background,

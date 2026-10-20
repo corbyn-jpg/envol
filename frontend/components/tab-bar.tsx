@@ -1,8 +1,13 @@
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { Tabs } from 'expo-router';
+import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors, Layout } from '@/constants/theme';
+
+// expo-router bundles its own React Navigation, so the tab bar's props are
+// read off the Tabs component rather than imported from @react-navigation.
+type BottomTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 // A fully custom tab bar
 export function TabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {

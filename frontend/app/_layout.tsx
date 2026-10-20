@@ -1,7 +1,3 @@
-import {
-  DefaultTheme,
-  ThemeProvider as NavigationThemeProvider,
-} from "@react-navigation/native";
 import { Amarante_400Regular } from "@expo-google-fonts/amarante";
 import {
   CinzelDecorative_400Regular,
@@ -10,7 +6,12 @@ import {
 } from "@expo-google-fonts/cinzel-decorative";
 import { Tinos_400Regular_Italic } from "@expo-google-fonts/tinos";
 import { useFonts } from "expo-font";
-import { Stack, SplashScreen } from "expo-router";
+import {
+  DefaultTheme,
+  ThemeProvider as NavigationThemeProvider,
+  Stack,
+  SplashScreen,
+} from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useEffect } from "react";

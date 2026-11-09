@@ -10,7 +10,7 @@ import { Colors, Layout } from '@/constants/theme';
 type BottomTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 // A fully custom tab bar
-export function TabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
+export function TabBar({ state, descriptors, emitter, navigateToTab, insets }: BottomTabBarProps) {
   return (
 
     //Ensures that the navbar fits every phone. In landscape the side insets are
@@ -32,8 +32,8 @@ export function TabBar({ state, descriptors, navigation, insets }: BottomTabBarP
         const focused = state.index === index;
 
         function onPress() {
-          // navigation.emit(...) broadcasts a real tabPress event through the navigation system first
-          const event = navigation.emit({
+          // emitter.emit(...) broadcasts a real tabPress event through the navigation system first
+          const event = emitter.emit({
             type: 'tabPress',
             target: route.key,
             canPreventDefault: true,
@@ -41,7 +41,7 @@ export function TabBar({ state, descriptors, navigation, insets }: BottomTabBarP
 
           //Navigate to the tab if nothing is cancelled and it isn't already the active tab
           if (!focused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+            navigateToTab(route.key);
           }
         }
 

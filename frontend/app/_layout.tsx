@@ -25,10 +25,6 @@ import { RaceProvider } from "@/contexts/race-context";
 //Makes sure the splash screen doesn't auto hide
 SplashScreen.preventAutoHideAsync();
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
-
 //Watches auth loading AND font loading — splash stays up until both are ready
 function SplashScreenController() {
   const { loading: authLoading } = useAuth();
